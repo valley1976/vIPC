@@ -16,7 +16,7 @@ class Channel
 {
 public:
     Channel();
-    explicit Channel(const std::string& name);
+    explicit Channel(const std::string& topic);
     ~Channel();
 
     Channel(const Channel&) = delete;
@@ -27,7 +27,7 @@ public:
 
     bool is_valid() const { return impl_ != nullptr; }
 
-    const std::string& name() const;
+    const std::string& topic() const;
     size_t max_data_size() const;
     size_t max_cached_size() const;
 

@@ -75,7 +75,13 @@ public:
             std::forward<Args>(args)...);
 
         if (entry_->payload_size > Entry::kMax_payload)
+        {   
+            entry_->payload[Entry::kMax_payload - 3] = '.';
+            entry_->payload[Entry::kMax_payload - 2] = '.';
+            entry_->payload[Entry::kMax_payload - 1] = '.';
+
             entry_->payload_size = Entry::kMax_payload;
+        }
 
 #if defined(__GNUC__) || defined(__clang__)
         _Pragma("GCC diagnostic pop")
@@ -92,7 +98,13 @@ public:
             std::forward<Args>(args)...).size;
 
         if (entry_->payload_size > Entry::kMax_payload)
+        {
+            entry_->payload[Entry::kMax_payload - 3] = '.';
+            entry_->payload[Entry::kMax_payload - 2] = '.';
+            entry_->payload[Entry::kMax_payload - 1] = '.';
+
             entry_->payload_size = Entry::kMax_payload;
+        }
     }
 #endif
 

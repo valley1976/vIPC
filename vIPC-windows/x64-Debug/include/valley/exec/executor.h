@@ -29,8 +29,6 @@ public:
 
     bool is_valid() const { return impl_ != nullptr; }
 
-    size_t max_task() const;
-
     void schedule(size_t task_index);
 
     int poll();
