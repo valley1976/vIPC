@@ -134,15 +134,20 @@ struct ControlCmd { double steer; double throttle; uint64_t seq; };
 {
     "application": "ValleyDrive",
     "channel": [
-        {"name": "/sensor/pose",   "subscriber": ["realtime", "collector"]},
-        {"name": "/sensor/camera", "subscriber": ["realtime", "collector"]},
-        {"name": "/sensor/lidar",  "subscriber": ["realtime", "collector"]},
-        {"name": "/trajectory",    "subscriber": ["trajectory", "collector"]},
-        {"name": "/control",       "subscriber": ["control", "collector"]}
+        {
+            "domain": "demo",
+            "topic" : [
+                {"name": "/sensor/pose",   "subscriber": ["realtime", "collector"]},
+                {"name": "/sensor/camera", "subscriber": ["realtime", "collector"]},
+                {"name": "/sensor/lidar",  "subscriber": ["realtime", "collector"]},
+                {"name": "/trajectory",    "subscriber": ["trajectory", "collector"]},
+                {"name": "/control",       "subscriber": ["control", "collector"]}
+            ]
+        }
     ],
     "executor": [
         { "name": "/collector", 
-          "task": ["collect_pose", "collect_cam", "collect_lidar", "collect_traj", "collect_ctrl"]}
+          "notification": ["collect_pose", "collect_cam", "collect_lidar", "collect_traj", "collect_ctrl"]}
     ]
 }
 ```
