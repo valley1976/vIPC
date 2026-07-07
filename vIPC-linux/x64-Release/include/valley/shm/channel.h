@@ -100,7 +100,7 @@ public:
     };
 
 private:
-    std::unique_ptr<internal::Channel> impl_;
+    std::shared_ptr<internal::Channel> impl_;
 };
 
 // inline
