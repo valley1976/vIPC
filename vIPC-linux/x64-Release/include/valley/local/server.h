@@ -37,6 +37,8 @@ public:
     void on_message(internal::On_message fn);
     void on_disconnected(internal::On_disconnected on_disconnected);
 
+    void enable_heartbeat();
+
     void start();
     void stop();
 
