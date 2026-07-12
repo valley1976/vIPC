@@ -1,0 +1,20 @@
+include "Time.fbs";
+include "Quaternion.fbs";
+include "Vector3.fbs";
+
+attribute "fixed_length";
+
+namespace foxglove;
+
+table Imu {
+    timestamp: Time;
+    frame_id: string;
+    orientation: Quaternion;
+    angular_velocity: Vector3;
+    linear_acceleration: Vector3;
+    orientation_covariance: [double] (fixed_length: 9);
+    angular_velocity_covariance: [double] (fixed_length: 9);
+    linear_acceleration_covariance: [double] (fixed_length: 9);
+}
+
+root_type Imu;
