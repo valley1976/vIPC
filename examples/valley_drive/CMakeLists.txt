@@ -79,7 +79,7 @@ ADD_EXECUTABLE(valley_drive "main.cpp" ${common_SRCS} ${sensor_SRCS})
 target_include_directories(valley_drive 
     PRIVATE 
         . 
-        ${CMAKE_SOURCE_DIR}
+        ${VALLEY_MODULES_DIR}
         )
 
 target_link_libraries(valley_drive 
