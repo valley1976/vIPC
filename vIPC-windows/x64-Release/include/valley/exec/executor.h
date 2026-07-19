@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include <functional>
+#include <vector>
 
 namespace valley {
 namespace exec {
@@ -17,8 +18,9 @@ class Executor
 public:
     using Named_task = std::pair<std::string, Task>;
 
-    Executor() = default;
+    Executor();
     explicit Executor(const std::string& name, std::initializer_list<Named_task> task);
+    Executor(const std::string& name, const std::vector<Named_task>& task);
     ~Executor();
 
     Executor(const Executor&) = delete;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cassert>
+#include <chrono>
 #include <memory>
 #include <string>
 #include <type_traits>
@@ -76,7 +77,13 @@ public:
         bool is_valid() const { return impl_ != nullptr; }
 
         const void* read_latest(size_t& size);
-        const void* read_earliest(size_t& size);
+        const void* read(size_t& size);
+
+        using Time_point = std::chrono::high_resolution_clock::time_point;
+
+        const void* read_latest(size_t& size, uint64_t& sequence, Time_point& writed_time);
+        const void* read(size_t& size, uint64_t& sequence, Time_point& writed_time);
+
         size_t max_data_size() const;
 
         template<typename T>
@@ -85,9 +92,9 @@ public:
         bool read_latest(T& value);
 
         template<typename T>
-        const T* read_earliest();
+        const T* read();
         template<typename T>
-        bool read_earliest(T& value);
+        bool read(T& value);
 
         template<typename Fn>
         void catch_up(const Fn& fn);
@@ -165,28 +172,28 @@ inline bool Channel::Subscriber::read_latest(T& value)
 }
 
 template<typename T>
-inline const T* Channel::Subscriber::read_earliest()
+inline const T* Channel::Subscriber::read()
 {
     static_assert(std::is_trivially_copyable<T>::value, "bad T");
     assert(sizeof(T) <= max_data_size());
     assert(is_valid());
 
     size_t size;
-    auto* ptr = reinterpret_cast<const T*>(read_earliest(size));
+    auto* ptr = reinterpret_cast<const T*>(read(size));
     assert(ptr? size == sizeof(T): true);
 
     return ptr;
 }
 
 template<typename T>
-inline bool Channel::Subscriber::read_earliest(T& value)
+inline bool Channel::Subscriber::read(T& value)
 {
     static_assert(std::is_trivially_copyable<T>::value, "bad T");
     assert(sizeof(T) <= max_data_size());
     assert(is_valid());
 
     size_t size;
-    auto ptr = reinterpret_cast<const T*>(read_earliest(size));
+    auto ptr = reinterpret_cast<const T*>(read(size));
     if (ptr)
     {
         assert(size == sizeof(T));
@@ -202,20 +209,20 @@ template<typename Fn>
 inline void Channel::Subscriber::catch_up(const Fn& fn)
 {
     size_t size;
-    auto* ptr = read_earliest(size);
+    auto* ptr = read(size);
     if (ptr) fn(ptr, size);
 
-    while ((ptr = read_earliest(size)))
+    while ((ptr = read(size)))
         fn(ptr, size);
 }
 
 template<typename T, typename Fn>
 inline void Channel::Subscriber::catch_up(const Fn& fn)
 {
-    auto* ptr = read_earliest<T>();
+    auto* ptr = read<T>();
     if (ptr) fn(ptr);
 
-    while ((ptr = read_earliest<T>()))
+    while ((ptr = read<T>()))
         fn(ptr);
 }
 

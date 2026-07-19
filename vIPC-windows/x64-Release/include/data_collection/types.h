@@ -1,0 +1,50 @@
+#pragma once
+
+#include <ctime>
+#include <memory>
+#include <string>
+#include <vector>
+#include <chrono>
+
+namespace mcap {
+using SchemaId = uint16_t;
+using ChannelId = uint16_t;
+
+struct McapWriterOptions;
+}
+
+namespace valley {
+namespace data {
+
+using Schema_key    = std::string;
+using Time_point    = std::chrono::high_resolution_clock::time_point;
+using Topic_id      = size_t;
+
+struct Trigger
+{
+    const std::string name;
+    const std::string origin;
+    const Time_point trigger_time; 
+    const Time_point seconds_before;
+    const Time_point seconds_after;
+
+    std::string description;
+    std::vector<Topic_id> topics;
+
+    Trigger(const std::string& name, const std::string& origin, size_t before_sec, size_t after_sec) : name(name),
+        origin(origin),
+        trigger_time(std::chrono::high_resolution_clock::now()),
+        seconds_before(trigger_time - std::chrono::seconds(before_sec)),
+        seconds_after(trigger_time + std::chrono::seconds(after_sec))
+    {}
+
+    using Ptr = std::unique_ptr<Trigger>;
+
+    static Ptr make_unique(const std::string& name, const std::string& origin, size_t before_sec, size_t after_sec)
+    {
+        return Ptr(new Trigger(name, origin, before_sec, after_sec));
+    }
+};
+
+}
+}

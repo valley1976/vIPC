@@ -1,13 +1,16 @@
 #pragma once
 
+#include <cassert>
 #include <cstddef>
 #include <cstdio>
+#include <cstdint>
 #include <cstdarg>
+#include <cstring>
 
 namespace valley {
 namespace lang {
 
-template<size_t N>
+template<uint32_t N>
 class Static_string
 {
 public:
@@ -19,14 +22,23 @@ public:
     const char* c_str() const { return data_; }
     size_t length() const { return length_; }
 
-    void assign(const char* fmt, ...)
+    void assign(const char* str) {
+        assert(str);
+        auto len = std::strlen(str);
+        if (len > N-1)
+            len = N-1;
+        std::strncpy(data_, str, len);
+        data_[len] = '\0';
+    }
+
+    void printf(const char* fmt, ...)
     {
         va_list args;
         va_start(args, fmt);
         auto n = std::vsnprintf(data_, N, fmt, args);
         va_end(args);
 
-        if (0 <= n && n <= N)
+        if (0 < n)
             length_ = n;
         else
             clear();
@@ -48,24 +60,24 @@ public:
         return std::strcmp(data_, str) != 0;
     }
 
-    template<size_t M>
+    template<uint32_t M>
     bool operator==(const Static_string<M>& str) const
     {
         return std::strcmp(data_, str.c_str()) == 0;
     }
 
-    template<size_t M>
+    template<uint32_t M>
     bool operator!=(const Static_string<M>& str) const
     {
         return std::strcmp(data_, str.c_str()) != 0;
     }
 
 private:
-    size_t length_ = 0;
+    uint32_t length_ = 0;
     char data_[N];
 };
 
-template<size_t N>
+template<uint32_t N>
 using SStr = Static_string<N>;
 
 }
