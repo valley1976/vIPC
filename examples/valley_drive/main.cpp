@@ -25,19 +25,25 @@ using namespace valley;
 const std::string kConfig = R"(
     {
         "application": "ValleyDrive",
-        "channel":[
+        "domain":[
             {
-            "domain": "simu",
-            "topic":[
-                {"name": "/trajectory",    "subscriber": ["trajectory", "collector"]},
-                {"name": "/control",       "subscriber": ["control", "collector"]},
-                {"name": "/sensor/camera_front",  "subscriber": ["realtime", "collector"]},
-                {"name": "/sensor/camera_near",   "subscriber": ["realtime", "collector"]},
-                {"name": "/sensor/camera_left",   "subscriber": ["realtime", "collector"]},
-                {"name": "/sensor/camera_right",  "subscriber": ["realtime", "collector"]},
-                {"name": "/sensor/imu",           "subscriber": ["realtime", "collector"]},
-                {"name": "/sensor/lidar",         "subscriber": ["realtime", "collector"]}
-            ]}
+                "name": "sensor",
+                "topic":[
+                    {"name": "/sensor/camera_front",  "subscriber": ["realtime", "collector"]},
+                    {"name": "/sensor/camera_near",   "subscriber": ["realtime", "collector"]},
+                    {"name": "/sensor/camera_left",   "subscriber": ["realtime", "collector"]},
+                    {"name": "/sensor/camera_right",  "subscriber": ["realtime", "collector"]},
+                    {"name": "/sensor/imu",           "subscriber": ["realtime", "collector"]},
+                    {"name": "/sensor/lidar",         "subscriber": ["realtime", "collector"]}
+                ]
+             },
+             {
+                "name": "algo",
+                "topic":[
+                    {"name": "/trajectory",    "subscriber": ["trajectory", "collector"]},
+                    {"name": "/control",       "subscriber": ["control", "collector"]},
+                ]
+             }
         ],
         "executor": [
             { "name": "/collector", 
@@ -46,6 +52,40 @@ const std::string kConfig = R"(
                        "collect_lidar", 
                        "collect_traj",
                        "collect_ctrl"]}
+        ],
+        "trigger": [
+            {
+                "name": "T0",
+                "description": "demo trigger",
+                "topic": [
+                    "/sensor/lidar/front",
+                    "/sensor/camera_near",
+                    "/sensor/camera_left",
+                    "/sensor/camera_right",
+                    "/sensor/imu", 
+                    "/sensor/lidar"
+                ]
+            }
+        ],
+        "recorder": [
+            {
+                "name": "R0",
+                "bundle": [
+                    {
+                        "name": "B0",
+                        "max_file_size": "50M",
+                        "compress": "none",
+                        "topic":[
+                            "/sensor/lidar/front",
+                            "/sensor/camera_near",
+                            "/sensor/camera_left",
+                            "/sensor/camera_right",
+                            "/sensor/imu", 
+                            "/sensor/lidar"
+                        ]
+                    }
+                ]
+            }
         ]
     }
     )";

@@ -14,8 +14,8 @@ struct Timestamp {
     uint32_t nsec = 0;  // nanoseconds within second
 
     static Timestamp now() {
-        auto tp = std::chrono::system_clock::now();
-        auto s = std::chrono::high_resolution_clock<std::chrono::seconds>(tp);
+        auto tp = std::chrono::high_resolution_clock::now();
+        auto s = std::chrono::time_point_cast<std::chrono::seconds>(tp);
         auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(tp - s);
         Timestamp t;
         t.sec = static_cast<uint32_t>(s.time_since_epoch().count());

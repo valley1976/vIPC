@@ -31,32 +31,30 @@ static constexpr auto kConfig_demo = R"(
         { "name": "sensor_colloctor", "notification": ["on_something_happened", "task2"]},
         { "name": "R", "notification": ["on_something_happened", "task2"]}
     ],
-    "data_collection": {
-        "trigger": [
-            {
-                "name": "T0",
-                "description": "demo trigger",
-                "topic": [
-                    "/sensor/lidar/front"
-                ]
-            }
-        ],
-        "recorder": [
-            {
-                "name": "R0",
-                "bundle": [
-                    {
-                        "name": "B0",
-                        "max_file_size": "50M",
-                        "compress": "none",
-                        "topic":[
-                            "/sensor/lidar/front"
-                        ]
-                    }
-                ]
-            }
-        ]
-    }
+    "trigger": [
+        {
+            "name": "T0",
+            "description": "demo trigger",
+            "topic": [
+                "/sensor/lidar/front"
+            ]
+        }
+    ],
+    "recorder": [
+        {
+            "name": "R0",
+            "bundle": [
+                {
+                    "name": "B0",
+                    "max_file_size": "50M",
+                    "compress": "none",
+                    "topic":[
+                        "/sensor/lidar/front"
+                    ]
+                }
+            ]
+        }
+    ]
 }
 )";
 
@@ -110,12 +108,6 @@ struct Recorder {
     std::vector<Bundle> bundle;
 };
 
-// data_collection 对象
-struct Data_collection {
-    std::vector<Trigger> trigger;
-    std::vector<Recorder> recorder;
-};
-
 // 根对象
 struct Config {
     std::string application;
@@ -123,7 +115,8 @@ struct Config {
     std::vector<Schema> schema;
     std::vector<Domain> domain;
     std::vector<Executor> executor;
-    Data_collection data_collection;
+    std::vector<Trigger> trigger;
+    std::vector<Recorder> recorder;
 };
 
 ///////////////////////////////////////////////////////////////////////////
