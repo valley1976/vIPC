@@ -68,6 +68,7 @@ struct Schema {
 struct Topic {
     std::string name;
     std::string type_name; 
+    std::string encoding;
     size_t data_size = 4 *1024;
     size_t cached_count = 8;
     std::vector<std::string> subscriber;
@@ -104,6 +105,7 @@ struct Bundle {
 // 录制器
 struct Recorder {
     std::string name;
+    std::string storage_directory;
     std::vector<std::string> topic; // 所有bundle的topic
     std::vector<Bundle> bundle;
 };

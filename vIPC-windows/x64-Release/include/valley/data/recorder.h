@@ -6,7 +6,7 @@
 #include <memory>
 #include <vector>
 
-#include "data/types.h"
+#include "data/trigger.h"
 
 namespace valley {
 namespace data {
@@ -23,16 +23,10 @@ public:
     Recorder(const Recorder&) = delete;
     Recorder& operator=(const Recorder&) = delete;
 
-    void initialize();
-
     void record(Trigger::Ptr&& trigger);
 
     void start();
     void stop();
-
-private:
-    bool set_storage_path(const std::string& path);
-    bool set_topic_subscriber(const std::string& name);
 
 private:
     std::unique_ptr<internal::Recorder> impl_;
