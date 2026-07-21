@@ -3,8 +3,7 @@
 #include "context.h"
 #include "logger.h"
 
-#define VALLEY_LOG(level) if (valley::log::Context::instance().should_log(level)) \
-                            valley::log::Use_logger<int(level)>::type(level, __LINE__, __FILE__, __func__)
+#define VALLEY_LOG(level) valley::log::Use_logger<static_cast<int>(level)>::type(level, __LINE__, __FILE__, __func__)
 
 // for operator <<
 #define vTRACE() VALLEY_LOG(valley::log::Level::kTrace)
@@ -29,6 +28,6 @@
   #define vINFO_FMT(...)   VALLEY_LOG(valley::log::Level::kInfo).format(__VA_ARGS__)
   #define vWARN_FMT(...)   VALLEY_LOG(valley::log::Level::kWarn).format(__VA_ARGS__)
   #define vERROR_FMT(...)  VALLEY_LOG(valley::log::Level::kError).format(__VA_ARGS__)
-  #define vFATALT_FMT(...) VALLEY_LOG(valley::log::Level::kFatal).format(__VA_ARGS__)
+  #define vFATAL_FMT(...)  VALLEY_LOG(valley::log::Level::kFatal).format(__VA_ARGS__)
 #endif // vENABLE_LOG_FMT
 

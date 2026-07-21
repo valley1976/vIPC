@@ -12,6 +12,7 @@
 #endif
 
 #include "entry.h"
+#include "context.h"
 
 namespace valley {
 namespace log {
@@ -56,14 +57,29 @@ public:
     Logger& operator=(const Logger&) = delete;
 
     template<typename T>
-    std::ostream& operator<< (T&& val)
+    Logger& operator<< (T&& val)
     {
-        return out_ << std::forward<T>(val);
+        if (should_log_)
+        {
+            if (!entry_) {
+                entry_.reset(new Entry(level_, line_, file_, func_));
+                out_.reset(new OStream(entry_->payload, Entry::kMax_payload));
+            }
+
+            out_->out << std::forward<T>(val);
+        }
+
+        return *this;
     }
 
     template<typename ...Args>
     void printf(const char* fmt, Args&& ... args)
     {
+        if (!should_log_)
+            return;
+
+        entry_.reset(new Entry(level_, line_, file_, func_));
+
 #if defined(__GNUC__) || defined(__clang__)
         _Pragma("GCC diagnostic push")
         _Pragma("GCC diagnostic ignored \"-Wformat-security\"")
@@ -92,6 +108,11 @@ public:
     template<typename F, typename ...Args>
     void format(F&& fmt, Args&& ... args)
     {
+        if (!should_log_)
+            return;
+
+        entry_.reset(new Entry(level_, line_, file_, func_));
+
         entry_->payload_size = fmt::format_to_n(entry_->payload,
             Entry::kMax_payload,
             std::forward<F>(fmt),
@@ -109,9 +130,23 @@ public:
 #endif
 
 private:
+    const bool should_log_;
+    const Level level_;
+    const int line_;
+    const char* file_;
+    const char* func_;
+
     Entry_ptr entry_;
-    detail::Fixed_streambuf streambuf_;
-    std::ostream out_;
+    
+    struct OStream {
+        detail::Fixed_streambuf streambuf;
+        std::ostream out;
+
+        OStream(char* buffer, size_t size) : streambuf(buffer, size),
+            out(&streambuf)
+        {}
+    };
+    std::unique_ptr<OStream> out_;
 };
 
 #ifdef _MSC_VER
