@@ -13,7 +13,7 @@ static constexpr auto kConfig_demo = R"(
     "description" : "demo",
     "schema": [
         {
-            "type_name": "foo",
+            "name": "foo",
             "encoding": "flatbuffer",
             "data": ""
         }
@@ -59,7 +59,7 @@ static constexpr auto kConfig_demo = R"(
 )";
 
 struct Schema {
-    std::string type_name;  // unique
+    std::string name;  // unique
     std::string encoding;
     std::string data;
 };
@@ -67,7 +67,7 @@ struct Schema {
 // 通道中的主题订阅信息
 struct Topic {
     std::string name;
-    std::string type_name; 
+    std::string schema; 
     std::string encoding;
     size_t data_size = 4 *1024;
     size_t cached_count = 8;
