@@ -11,7 +11,7 @@ namespace exec {
 class LIBVALLEY_EXPORT Notification
 {
 public:
-    Notification() = default;
+    Notification();
     Notification(const std::string& executor, const std::string& task);
     ~Notification();
 
