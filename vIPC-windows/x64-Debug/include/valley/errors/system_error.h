@@ -2,10 +2,12 @@
 
 #include <string>
 
+#include "valley/export/export.h"
+
 namespace valley {
 namespace errors {
 
-void throw_system_error(const std::string& info);
+void LIBVALLEY_EXPORT throw_system_error(const std::string& info);
 
 }
 }

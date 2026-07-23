@@ -3,10 +3,12 @@
 #include <memory>
 #include <string>
 
+#include "valley/export/export.h"
+
 namespace valley {
 namespace exec {
 
-class Notification
+class LIBVALLEY_EXPORT Notification
 {
 public:
     Notification() = default;

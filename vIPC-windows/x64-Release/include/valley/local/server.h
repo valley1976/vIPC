@@ -4,6 +4,7 @@
 #include <functional>
 #include <memory>
 
+#include "valley/export/export.h"
 #include "valley/lang/any.h"
 
 #include "message.h"
@@ -20,10 +21,10 @@ namespace internal
     using On_message      = std::function<void(size_t, Connection&, const Message_view&, lang::Any&)>;
     using On_disconnected = std::function<void(size_t)>;
 
-    void send_async(Connection& connection, Message& msg);
+    void LIBVALLEY_EXPORT send_async(Connection& connection, Message& msg);
 }
 
-class Server
+class LIBVALLEY_EXPORT Server
 {
 public:
     explicit Server(const std::string& name);

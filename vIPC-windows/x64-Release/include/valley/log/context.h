@@ -3,12 +3,14 @@
 #include <mutex>
 #include <utility>
 
+#include "valley/export/export.h"
+
 #include "sink.h"
 
 namespace valley {
 namespace log {
 
-class Context
+class LIBVALLEY_EXPORT Context
 {
 public:
     ~Context();

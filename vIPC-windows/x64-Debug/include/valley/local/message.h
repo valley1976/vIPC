@@ -9,12 +9,14 @@
 #include <vector>
 #include <type_traits>
 
+#include "valley/export/export.h"
+
 namespace valley {
 namespace local {
 
 class Buffer;
 
-class Message
+class LIBVALLEY_EXPORT Message
 {
 public:
     enum class Status : int32_t
@@ -135,7 +137,7 @@ private:
     std::unique_ptr<Buffer> buffer_;
 };
 
-class Message_view
+class LIBVALLEY_EXPORT Message_view
 {
 public:
     Message_view() = default;

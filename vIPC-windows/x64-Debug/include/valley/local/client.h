@@ -4,6 +4,8 @@
 #include <chrono>
 #include <memory>
 
+#include "valley/export/export.h"
+
 #include "message.h"
 #include "context.h"
 
@@ -14,13 +16,13 @@ namespace internal {
     using On_available = std::function<void(Client&)>;
     using Message_handler = std::function<void(internal::Client&, const Message_view&)>;
 
-    void send_async(Client& connection, Message& msg);
+    void LIBVALLEY_EXPORT send_async(Client& connection, Message& msg);
 }
 
 using Seconds       = std::chrono::seconds;
 using Milliseconds  = std::chrono::milliseconds;
 
-class Client
+class LIBVALLEY_EXPORT Client
 {
 public:
     explicit Client(const std::string& name);

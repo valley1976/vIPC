@@ -5,14 +5,14 @@
 #include <functional>
 #include <memory>
 
-#include <valley/lang/storage.h>
+#include "valley/export/export.h"
 
 namespace valley {
 namespace thread {
 
 using Milliseconds = std::chrono::milliseconds;
 
-class Workset
+class LIBVALLEY_EXPORT Workset
 {
 public:
     using Task = std::function<void()>;

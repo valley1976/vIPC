@@ -3,7 +3,8 @@
 #include <chrono>
 #include <memory>
 
-#include <valley/lang/storage.h>
+#include "valley/export/export.h"
+#include "valley/lang/storage.h"
 
 namespace valley {
 namespace thread {
@@ -12,7 +13,7 @@ namespace internal {
 class Channel;
 }
 
-class Channel
+class LIBVALLEY_EXPORT Channel
 {
 public:
     Channel(size_t subscriber_count = 1, size_t data_size = 64, size_t cached_count = 8);
@@ -21,7 +22,7 @@ public:
     Channel(const Channel&) = delete;
     Channel& operator=(const Channel&) = delete;
 
-    class Publisher
+    class LIBVALLEY_EXPORT Publisher
     {
     public:
         Publisher(Channel& channel);
@@ -45,7 +46,7 @@ public:
         lang::Storage<Impl, 16, 8> impl_;
     };
 
-    struct Subscriber
+    struct LIBVALLEY_EXPORT Subscriber
     {
         Subscriber(Channel& channel, int id);
         ~Subscriber();

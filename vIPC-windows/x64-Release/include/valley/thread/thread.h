@@ -14,6 +14,8 @@
 #include <atomic>
 #include <thread>
 
+#include "valley/export/export.h"
+
 #include "option.h"
 #include "this_task.h"
 #include "workset.h"
@@ -23,7 +25,7 @@ namespace thread {
 
 uint64_t current_thread_id();
 
-struct Timepoint
+struct LIBVALLEY_EXPORT Timepoint
 {
 #ifdef _WIN32
     LARGE_INTEGER value;
@@ -35,8 +37,8 @@ struct Timepoint
     Timepoint after(const std::chrono::nanoseconds& ns) const;
 };
 
-Timepoint now();
-void nanosleep_until(const Timepoint& tp);
+Timepoint LIBVALLEY_EXPORT now();
+void LIBVALLEY_EXPORT nanosleep_until(const Timepoint& tp);
 
 template <class Fn, class... Args>
 inline std::thread start(const Option& option, Fn&& fn, Args&&... args)

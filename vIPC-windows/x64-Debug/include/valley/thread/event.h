@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <memory>
 
+#include "valley/export/export.h"
+
 namespace valley {
 namespace thread {
 
@@ -10,7 +12,7 @@ namespace internal {
 class Event;
 }
 
-class Event
+class LIBVALLEY_EXPORT Event
 {
 public:
     Event();

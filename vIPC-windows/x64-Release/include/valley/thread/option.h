@@ -1,13 +1,15 @@
 #pragma once
 
 #include <cstddef>
+#include <memory>
 
-#include <valley/lang/storage.h>
+#include "valley/export/export.h"
+#include "valley/lang/storage.h"
 
 namespace valley {
 namespace thread {
 
-class Option
+class LIBVALLEY_EXPORT Option
 {
 public:
     Option();
@@ -27,7 +29,7 @@ public:
 
 private:
     class Impl;
-    lang::Storage<Impl, 16, 8> impl_;
+    std::unique_ptr<Impl> impl_;
 };
 
 }

@@ -2,12 +2,12 @@
 
 #include <cstddef>
 
-#include <valley/lang/storage.h>
+#include "valley/export/export.h"
 
 namespace valley {
 namespace thread {
 
-class This_task
+class LIBVALLEY_EXPORT This_task
 {
 public:
     static void schedule() noexcept;

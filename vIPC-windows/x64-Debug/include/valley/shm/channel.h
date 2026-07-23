@@ -6,6 +6,8 @@
 #include <string>
 #include <type_traits>
 
+#include "valley/export/export.h"
+
 namespace valley {
 namespace shm {
 
@@ -13,7 +15,7 @@ namespace internal {
 class Channel;
 }
 
-class Channel
+class LIBVALLEY_EXPORT Channel
 {
 public:
     Channel();
@@ -26,13 +28,13 @@ public:
     Channel(Channel&& orig) noexcept;
     Channel& operator=(Channel&& orig) noexcept;
 
-    bool is_valid() const { return impl_ != nullptr; }
+    bool is_valid() const;
 
     const std::string& topic() const;
     size_t max_data_size() const;
     size_t max_cached_size() const;
 
-    class Publisher
+    class LIBVALLEY_EXPORT Publisher
     {
     public:
         Publisher();
@@ -45,7 +47,7 @@ public:
         Publisher(Publisher&& orig) noexcept;
         Publisher& operator=(Publisher&& orig) noexcept;
 
-        bool is_valid() const { return impl_ != nullptr; }
+        bool is_valid() const;
         size_t max_data_size() const;
 
         void* get(size_t size);
@@ -61,7 +63,7 @@ public:
         std::unique_ptr<Impl> impl_;
     };
 
-    class Subscriber
+    class LIBVALLEY_EXPORT Subscriber
     {
     public:
         Subscriber();
@@ -74,7 +76,7 @@ public:
         Subscriber(Subscriber&& orig) noexcept;
         Subscriber& operator=(Subscriber&& orig) noexcept;
 
-        bool is_valid() const { return impl_ != nullptr; }
+        bool is_valid() const;
 
         const void* read_latest(size_t& size);
         const void* read(size_t& size);

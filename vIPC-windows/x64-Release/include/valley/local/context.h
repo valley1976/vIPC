@@ -3,6 +3,8 @@
 #include <functional>
 #include <memory>
 
+#include "valley/export/export.h"
+
 namespace valley {
 namespace local {
 namespace internal {
@@ -12,7 +14,7 @@ class Context;
 class Server;
 class Client;
 
-class Context
+class LIBVALLEY_EXPORT Context
 {
 public:
     using On_start = std::function<void()>;

@@ -7,13 +7,15 @@
 #include <functional>
 #include <vector>
 
+#include "valley/export/export.h"
+
 namespace valley {
 namespace exec {
 
 using Milliseconds = std::chrono::milliseconds;
 using Task = std::function<void()>;
 
-class Executor
+class LIBVALLEY_EXPORT Executor
 {
 public:
     using Named_task = std::pair<std::string, Task>;

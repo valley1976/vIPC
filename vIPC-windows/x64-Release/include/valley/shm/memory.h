@@ -3,10 +3,12 @@
 #include <memory>
 #include <string>
 
+#include "valley/export/export.h"
+
 namespace valley {
 namespace shm {
 
-class Memory
+class LIBVALLEY_EXPORT Memory
 {
 public:
     Memory();

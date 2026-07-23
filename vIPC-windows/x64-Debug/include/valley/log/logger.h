@@ -4,7 +4,7 @@
 #include <ostream>
 #include <utility>
 
-//#include <valley/api.h>
+#include "valley/export/export.h"
 
 #ifdef vENABLE_LOG_FMT
   #define FMT_HEADER_ONLY 1
@@ -47,7 +47,7 @@ private:
 #  pragma warning( disable: 4251 )
 #endif
 
-class Logger final
+class LIBVALLEY_EXPORT Logger final
 {
 public:
     Logger(Level level, int line, const char* file, const char* func);
@@ -153,7 +153,7 @@ private:
 #  pragma warning( default: 4251 )
 #endif
 
-class Null_logger
+class LIBVALLEY_EXPORT Null_logger
 {
 public:
     Null_logger(Level level, int line, const char* file)
