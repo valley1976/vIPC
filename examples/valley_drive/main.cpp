@@ -13,7 +13,7 @@
 #include "sensor/imu_device.h"
 #include "sensor/lidar_device.h"
 
-#include "valley/conf/conf.h"
+#include "valley/conf/configure.h"
 #include "valley/shm/channel.h"
 #include "valley/exec/executor.h"
 #include "valley/exec/notification.h"
@@ -93,7 +93,7 @@ const std::string kConfig = R"(
 int main() {
     log::Context::instance().init(log::Level::kInfo);
 
-    conf::initialize(kConfig, conf::Model::kBoth);
+    conf::Configure::initialize(kConfig, conf::Model::kBoth);
     
     sensor_sim::CameraDevice camera_front("camera front",  "/sensor/camera_front");
     sensor_sim::CameraDevice camera_near("camera near",    "/sensor/camera_near");

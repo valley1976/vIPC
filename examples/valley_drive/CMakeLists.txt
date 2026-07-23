@@ -1,6 +1,5 @@
-set(VALLEY_DIR "${CMAKE_INSTALL_DIR}")
-
 find_package(flatbuffers REQUIRED)
+find_package(Threads REQUIRED)
 
 include(${FlatBuffers_CMAKE_DIR}/BuildFlatBuffers.cmake OPTIONAL)
 
@@ -79,12 +78,14 @@ ADD_EXECUTABLE(valley_drive "main.cpp" ${common_SRCS} ${sensor_SRCS})
 target_include_directories(valley_drive 
     PRIVATE 
         . 
-        ${VALLEY_MODULES_DIR}
+        ${VALLEY_DIR}
+        ${VALLEY_DIR}/modules
         )
 
 target_link_libraries(valley_drive 
-    PRIVATE 
-    vIPC
+    PRIVATE
+    Threads::Threads
+    valley
     foxglove_flat
     flatbuffers::flatbuffers)
 
