@@ -3,12 +3,12 @@
 #include <memory>
 #include <string>
 
-#include "valley/export/export.h"
+#include "valley/failure/export.h"
 
 namespace valley {
 namespace failure {
 
-class LIBVALLEY_EXPORT Failure
+class LIBVALLEY_FAILURE_EXPORT Failure
 {
 public:
     ~Failure();
