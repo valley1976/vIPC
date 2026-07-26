@@ -8,8 +8,8 @@
 #include "RawImage_generated.h"
 #include "Time_generated.h"
 
-#include "valley/thread/thread.h"
-#include "valley/log/log.h"
+#include "valley/base/thread/thread.h"
+#include "valley/base/log/log.h"
 
 using namespace valley;
 
@@ -44,12 +44,12 @@ bool CameraDevice::start(size_t fps) {
 
     auto interval = 1000/fps;
 
-    thread::Option option;
+    base::Thread_option option;
     option.set_priority_realtime();
 
-    auto start_timepoint = thread::now();
+    auto start_timepoint = base::now();
 
-    thread_ = thread::start_cyclic(
+    thread_ = base::start_cyclic(
         option,
         stop_,
         start_timepoint,
@@ -142,6 +142,7 @@ void CameraDevice::generate_frame() {
                 std::memcpy(buf, &header, sizeof(header));
                 std::memcpy(static_cast<char*>(buf) + sizeof(header), fbb.GetBufferPointer(), payload_size);
                 publisher_.write();
+                nty_.emit();
             }
         }
     }
@@ -163,6 +164,7 @@ bool CameraDevice::publish_to_vipc(const std::string& channel) {
     channel_ = Channel(channel);
     if (!channel_.is_valid()) return false;
     publisher_ = Channel::Publisher(channel_);
+    nty_ = Notification("R0", channel);
     return publisher_.is_valid();
 }
 

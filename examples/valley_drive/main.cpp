@@ -13,35 +13,39 @@
 #include "sensor/imu_device.h"
 #include "sensor/lidar_device.h"
 
-#include "valley/conf/configure.h"
-#include "valley/shm/channel.h"
-#include "valley/exec/executor.h"
-#include "valley/exec/notification.h"
-#include "valley/thread/thread.h"
-#include "valley/log/log.h"
+#include "valley/conf/conf.h"
+#include "valley/ipc/ipc.h"
+#include "valley/base/base.h"
+#include "valley/data/data.h"
+
 
 using namespace valley;
 
 const std::string kConfig = R"(
     {
         "application": "ValleyDrive",
+        "schema": [
+            { "name": "foxglove.RawImage", "encoding": "flatbuffer" },
+            { "name": "foxglove.Imu", "encoding": "flatbuffer", "data": "" },
+            { "name": "foxglove.LaserScan", "encoding": "flatbuffer" }
+        ],
         "domain":[
             {
                 "name": "sensor",
                 "topic":[
-                    {"name": "/sensor/camera_front",  "subscriber": ["realtime", "collector"]},
-                    {"name": "/sensor/camera_near",   "subscriber": ["realtime", "collector"]},
-                    {"name": "/sensor/camera_left",   "subscriber": ["realtime", "collector"]},
-                    {"name": "/sensor/camera_right",  "subscriber": ["realtime", "collector"]},
-                    {"name": "/sensor/imu",           "subscriber": ["realtime", "collector"]},
-                    {"name": "/sensor/lidar",         "subscriber": ["realtime", "collector"]}
+                    {"name": "/sensor/camera_front",  "schema": "foxglove.RawImage", "data_size": 921788, "subscriber": ["realtime", "R0"]},
+                    {"name": "/sensor/camera_near",   "schema": "foxglove.RawImage", "subscriber": ["realtime", "R0"]},
+                    {"name": "/sensor/camera_left",   "schema": "foxglove.RawImage", "subscriber": ["realtime", "R0"]},
+                    {"name": "/sensor/camera_right",  "schema": "foxglove.RawImage", "subscriber": ["realtime", "R0"]},
+                    {"name": "/sensor/imu",           "schema": "foxglove.Imu", "subscriber": ["realtime", "R0"]},
+                    {"name": "/sensor/lidar",         "schema": "foxglove.LaserScan", "subscriber": ["realtime", "R0"]}
                 ]
              },
              {
                 "name": "algo",
                 "topic":[
                     {"name": "/trajectory",    "subscriber": ["trajectory", "collector"]},
-                    {"name": "/control",       "subscriber": ["control", "collector"]},
+                    {"name": "/control",       "subscriber": ["control", "collector"]}
                 ]
              }
         ],
@@ -58,7 +62,7 @@ const std::string kConfig = R"(
                 "name": "T0",
                 "description": "demo trigger",
                 "topic": [
-                    "/sensor/lidar/front",
+                    "/sensor/camera_front",
                     "/sensor/camera_near",
                     "/sensor/camera_left",
                     "/sensor/camera_right",
@@ -76,7 +80,7 @@ const std::string kConfig = R"(
                         "max_file_size": "50M",
                         "compress": "none",
                         "topic":[
-                            "/sensor/lidar/front",
+                            "/sensor/camera_front",
                             "/sensor/camera_near",
                             "/sensor/camera_left",
                             "/sensor/camera_right",
@@ -91,9 +95,10 @@ const std::string kConfig = R"(
     )";
 
 int main() {
-    log::Context::instance().init(log::Level::kInfo);
-
-    conf::Configure::initialize(kConfig, conf::Model::kBoth);
+    //base::Log_context::init(base::Level::kInfo);
+    conf::Configure::initialize(kConfig);
+    ipc::Serve::run(ipc::Model::kBoth);
+    data::Recorder recorder("R0");
     
     sensor_sim::CameraDevice camera_front("camera front",  "/sensor/camera_front");
     sensor_sim::CameraDevice camera_near("camera near",    "/sensor/camera_near");
@@ -114,29 +119,45 @@ int main() {
     camera_right.set_data_callback(came_stat);
 
     auto imu_stat = [](const sensor_sim::ImuData& imu, uint32_t sequence) {
-        if (sequence % 100 == 0)
+        if (sequence % 1000000 == 0)
             vINFO_PRT("imu %s count: %d", imu.frame_id, sequence);
     };
 
     imu.set_data_callback(imu_stat);
 
     auto lidar_stat = [](const sensor_sim::LaserScan& lidar, const std::vector<double>&, const std::vector<double>&, uint32_t sequence) {
-        if (sequence % 100 == 0)
+        if (sequence % 100000 == 0)
             vINFO_PRT("lidar %s count: %d", lidar.frame_id, sequence);
     };
 
     lidar.set_data_callback(lidar_stat);
+    
+    camera_front.publish_to_vipc("/sensor/camera_front");
+    camera_near.publish_to_vipc("/sensor/camera_near");
+    camera_left.publish_to_vipc("/sensor/camera_left");
+    camera_right.publish_to_vipc("/sensor/camera_right");
 
     camera_front.start();
     camera_near.start();
     camera_left.start();
     camera_right.start();
 
+    imu.publish_to_vipc("/sensor/imu");
     imu.start();
+
+    lidar.publish_to_vipc("/sensor/lidar");
     lidar.start();
+
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+    recorder.start();
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+    recorder.record(data::Trigger::Ptr(new data::Trigger("T0", "demo", 3, 5)));
 
     std::this_thread::sleep_for(std::chrono::seconds(30));
 
     std::cout << "所有线程已安全退出" << std::endl;
+
+    recorder.stop();
+
     return 0;
 }

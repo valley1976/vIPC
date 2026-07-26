@@ -5,13 +5,15 @@
 #include <functional>
 #include <vector>
 
-#include <valley/shm/channel.h>
+#include <valley/ipc/ipc.h>
 
 #include "common/sensor_types.h"
 
 namespace sensor_sim {
 
-using valley::shm::Channel;
+using valley::ipc::Channel;
+using valley::ipc::Notification;
+
 
 class CameraDevice {
 public:
@@ -19,6 +21,8 @@ public:
 
     CameraDevice(const std::string& name, const std::string& channel_name);
     ~CameraDevice();
+
+    bool publish_to_vipc(const std::string& channel);
 
     void set_image_size(uint32_t w, uint32_t h);
     void set_encoding(const std::string& enc);
@@ -31,7 +35,6 @@ public:
 private:
     void generate_frame();
     std::vector<uint8_t> generate_test_pattern();
-    bool publish_to_vipc(const std::string& channel);
 
 private:
     std::string name_;
@@ -47,6 +50,7 @@ private:
 
     Channel channel_;
     Channel::Publisher publisher_;
+    Notification nty_;
 };
 
 } // namespace sensor_sim

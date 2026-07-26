@@ -75,17 +75,26 @@ set(sensor_SRCS
     sensor/lidar_device.cpp)
 
 ADD_EXECUTABLE(valley_drive "main.cpp" ${common_SRCS} ${sensor_SRCS})
+
+target_compile_definitions(valley_drive 
+    PRIVATE 
+        vENABLE_LOG_FMT=1
+        LIBVALLEY_BASE_SHARED
+        )
+
 target_include_directories(valley_drive 
     PRIVATE 
         . 
-        ${VALLEY_DIR}
-        ${VALLEY_DIR}/modules
+        ${VALLEY_ROOT_DIR}
         )
 
 target_link_libraries(valley_drive 
     PRIVATE
+    valley_data
+    valley_conf
+    valley_ipc
+    valley_base
     Threads::Threads
-    valley
     foxglove_flat
     flatbuffers::flatbuffers)
 

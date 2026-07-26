@@ -5,13 +5,14 @@
 #include <functional>
 #include <vector>
 
-#include <valley/shm/channel.h>
+#include <valley/ipc/ipc.h>
 
 #include "common/sensor_types.h"
 
 namespace sensor_sim {
 
-using valley::shm::Channel;
+using valley::ipc::Channel;
+using valley::ipc::Notification;
 
 class LidarDevice {
 public:
@@ -23,6 +24,7 @@ public:
     void set_scan_params(double start_angle, double end_angle, uint32_t num_points);
     void set_scan_rate(double hz);
     void set_data_callback(DataCallback cb);
+    bool publish_to_vipc(const std::string& vipc_channel);
 
     bool start(size_t fps = 10);
     void stop();
@@ -30,7 +32,6 @@ public:
 
 private:
     void generate_scan();
-    bool publish_to_vipc(const std::string& vipc_channel);
 
 private:
     std::string name_;
@@ -47,6 +48,7 @@ private:
 
     Channel channel_;
     Channel::Publisher publisher_;
+    Notification nty_;
 };
 
 } // namespace sensor_sim

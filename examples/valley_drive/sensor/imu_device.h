@@ -4,13 +4,14 @@
 #include <atomic>
 #include <functional>
 
-#include "valley/shm/channel.h"
+#include "valley/ipc/ipc.h"
 
 #include "common/sensor_types.h"
 
 namespace sensor_sim {
 
-using valley::shm::Channel;
+using valley::ipc::Channel;
+using valley::ipc::Notification;
 
 class ImuDevice {
 public:
@@ -20,6 +21,7 @@ public:
     ~ImuDevice();
 
     void set_data_callback(DataCallback cb);
+    bool publish_to_vipc(const std::string& channel);
 
     bool start(size_t fps = 100);
     void stop();
@@ -27,7 +29,6 @@ public:
 
 private:
     void generate_sample();
-    bool publish_to_vipc(const std::string& channel);
 
 private:
     std::string name_;
@@ -40,6 +41,7 @@ private:
 
     Channel channel_;
     Channel::Publisher publisher_;
+    Notification nty_;
 };
 
 } // namespace sensor_sim
