@@ -69,7 +69,7 @@ struct Topic {
     std::string name;
     std::string schema;
     std::string encoding;
-    size_t data_size = 4 * 1024;
+    size_t data_size = 64 * 1024;
     size_t cached_count = 64;
     std::vector<std::string> subscriber;
 };

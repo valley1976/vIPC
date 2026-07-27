@@ -75,9 +75,9 @@ public:
         bool read(T& value);
 
         template<typename Fn>
-        void catch_up(const Fn& fn);
+        void read_all(const Fn& fn);
         template<typename T, typename Fn>
-        void catch_up(const Fn& fn);
+        void read_all(const Fn& fn);
 
     private:
         class Impl;
@@ -174,24 +174,21 @@ inline bool Channel::Subscriber::read(T& value)
 }
 
 template<typename Fn>
-inline void Channel::Subscriber::catch_up(const Fn& fn)
+inline void Channel::Subscriber::read_all(const Fn& fn)
 {
     size_t size;
-    auto* ptr = read(size);
-    if (ptr) fn(ptr, size);
-
-    while ((ptr = read(size)))
+    const void* ptr;
+    while ((ptr = read(size)) != nullptr)
         fn(ptr, size);
 }
 
 template<typename T, typename Fn>
-inline void Channel::Subscriber::catch_up(const Fn& fn)
+inline void Channel::Subscriber::read_all(const Fn& fn)
 {
-    auto* ptr = read<T>();
-    if (ptr) fn(ptr);
-
-    while ((ptr = read<T>()))
-        fn(ptr);
+    size_t size;
+    const T* ptr;
+    while ((ptr = read<T>(size)) != nullptr)
+        fn(ptr, size);
 }
 
 }
