@@ -51,6 +51,15 @@ static constexpr auto kConfig_demo = R"(
                 }
             ]
         }
+    ],
+    "arena":[
+        {
+            "name": "group0",
+            "chunk": [
+                { "name": "chnk0", "size": 512}
+                { "name": "chnk1", "size": 32}
+            ]
+        }
     ]
 }
 )";
@@ -110,7 +119,17 @@ struct Recorder {
     std::vector<Bundle> bundle;
 };
 
-// 根对象
+struct Chunk {
+    std::string name;
+    size_t size; // KB
+};
+
+struct Arena {
+    std::string name;
+    std::vector<Chunk> chunk;
+};
+
+// 配置对象
 struct Config {
     std::string application;
     std::string description;
@@ -119,6 +138,7 @@ struct Config {
     std::vector<Executor> executor;
     std::vector<Trigger> trigger;
     std::vector<Recorder> recorder;
+    std::vector<Arena> arena;
 };
 
 }

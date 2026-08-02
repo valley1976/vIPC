@@ -90,6 +90,17 @@ const std::string kConfig = R"(
                     }
                 ]
             }
+        ],
+        "arena":[
+            {
+                "name": "demo",
+                "chunk": [
+                    {
+                        "name": "C0",
+                        "size": 64
+                    }
+                ]
+            }
         ]
     }
     )";
