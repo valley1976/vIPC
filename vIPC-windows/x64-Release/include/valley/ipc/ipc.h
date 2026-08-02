@@ -9,3 +9,4 @@
 #include "local/server.h"
 #include "serve/serve.h"
 #include "shm/channel.h"
+#include "shm/chunk.h"

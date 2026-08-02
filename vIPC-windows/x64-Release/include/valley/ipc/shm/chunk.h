@@ -31,7 +31,7 @@ public:
 
     operator bool() const { return impl_ != nullptr; }
 
-    class Locked_data
+    class LIBVALLEY_IPC_EXPORT Locked_data
     {
     public:
         explicit Locked_data(Chunk& chunk);
@@ -43,14 +43,16 @@ public:
         Locked_data(Locked_data&& orig) noexcept;
         Locked_data& operator=(Locked_data&& orig) noexcept;
 
-        void* data();
+        void* ptr();
         size_t size() const;
+
+        bool is_abandoned() const;
 
     private:
         internal::Chunk* impl_;
     };
 
-    Locked_data data();
+    Locked_data locked_data();
 
     template<typename T>
     class Typed_data : Locked_data
@@ -70,7 +72,7 @@ public:
     };
 
     template<typename T>
-    Typed_data<T> get() {
+    Typed_data<T> locked_data() {
         return Typed_data<T>(*this);
     }
 
