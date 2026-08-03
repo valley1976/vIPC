@@ -126,7 +126,7 @@ void CameraDevice::generate_frame() {
 
     fbb.Finish(img);
 
-    if (publisher_.is_valid()) {
+    if (publisher_) {
         size_t payload_size = fbb.GetSize();
         size_t total_size = sizeof(SensorMessageHeader) + payload_size;
         if (total_size <= publisher_.max_data_size()) {
@@ -161,11 +161,17 @@ void CameraDevice::generate_frame() {
 }
 
 bool CameraDevice::publish_to_vipc(const std::string& channel) {
-    channel_ = Channel(channel);
-    if (!channel_.is_valid()) return false;
-    publisher_ = Channel::Publisher(channel_);
-    nty_ = Notification("R0", channel);
-    return publisher_.is_valid();
+    channel_ = Channel::create(channel);
+    if (!channel_)
+        return false;
+
+    auto publisher_ = Channel::Publisher::create(channel_);
+    if (!publisher_)
+        return false;
+
+    nty_ = ipc::Notification("R0", channel);
+
+    return true;
 }
 
 } // namespace sensor_sim

@@ -114,7 +114,7 @@ void ImuDevice::generate_sample() {
     
     fbb.Finish(imu);
     
-    if (publisher_.is_valid()) {
+    if (publisher_) {
         size_t payload_size = fbb.GetSize();
         size_t total_size = sizeof(SensorMessageHeader) + payload_size;
         if (total_size <= publisher_.max_data_size()) {
@@ -140,11 +140,17 @@ void ImuDevice::generate_sample() {
 }
 
 bool ImuDevice::publish_to_vipc(const std::string& channel) {
-    channel_ = Channel(channel);
-    if (!channel_.is_valid()) return false;
-    publisher_ = Channel::Publisher(channel_);
+    channel_ = Channel::create(channel);
+    if (!channel_)
+        return false;
+
+    auto publisher_ = Channel::Publisher::create(channel_);
+    if (!publisher_)
+        return false;
+
     nty_ = ipc::Notification("R0", channel);
-    return publisher_.is_valid();
+
+    return true;
 }
 
 } // namespace sensor_sim

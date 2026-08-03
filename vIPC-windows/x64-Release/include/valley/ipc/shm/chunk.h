@@ -7,6 +7,7 @@
 #include <type_traits>
 
 #include "valley/ipc/export.h"
+#include "valley/base/lang/optional.h"
 
 namespace valley {
 namespace ipc {
@@ -31,53 +32,45 @@ public:
 
     operator bool() const { return impl_ != nullptr; }
 
-    class LIBVALLEY_IPC_EXPORT Locked_data
-    {
-    public:
-        explicit Locked_data(Chunk& chunk);
-        ~Locked_data();
+    class Locked_data;
 
-        Locked_data(const Locked_data&) = delete;
-        Locked_data& operator=(const Locked_data&) = delete;
-
-        Locked_data(Locked_data&& orig) noexcept;
-        Locked_data& operator=(Locked_data&& orig) noexcept;
-
-        void* ptr();
-        size_t size() const;
-
-        bool is_abandoned() const;
-
-    private:
-        internal::Chunk* impl_;
-    };
-
-    Locked_data locked_data();
-
-    template<typename T>
-    class Typed_data : Locked_data
-    {
-        static_assert(std::is_standard_layout<T>::value, "bad T");
-    public:
-        using Locked_data::Locked_data;
-
-        T* operator->() { return cast(); }
-        T& operator*() { return *cast(); }
-
-    private:
-        T* cast() {
-            assert(sizeof(T) <= size());
-            return reinterpret_cast<T*>(ptr());
-        }
-    };
-
-    template<typename T>
-    Typed_data<T> locked_data() {
-        return Typed_data<T>(*this);
-    }
+    Locked_data lock();
+    base::Optional<Locked_data> try_lock();
+    base::Optional<Locked_data> try_lock_for(const std::chrono::milliseconds& tiemout);
 
 private:
     std::shared_ptr<internal::Chunk> impl_;
+};
+
+class LIBVALLEY_IPC_EXPORT Chunk::Locked_data
+{
+public:
+    ~Locked_data();
+
+    Locked_data(const Locked_data&) = delete;
+    Locked_data& operator=(const Locked_data&) = delete;
+
+    Locked_data(Locked_data&& orig) noexcept;
+    Locked_data& operator=(Locked_data&& orig) noexcept;
+
+    void* ptr();
+    size_t size() const;
+
+    bool is_abandoned() const;
+
+    template<typename T>
+    T* cast() {
+        static_assert(std::is_standard_layout<T>::value, "bad T");
+        assert(sizeof(T) <= size());
+        return reinterpret_cast<T*>(ptr());
+    }
+
+private:
+    friend Chunk;
+
+    explicit Locked_data(internal::Chunk* locked_chunk);
+private:
+    internal::Chunk* impl_;
 };
 
 }
