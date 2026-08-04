@@ -7,7 +7,6 @@
 #include <type_traits>
 
 #include "valley/ipc/export.h"
-#include "valley/base/lang/optional.h"
 
 namespace valley {
 namespace ipc {
@@ -30,13 +29,13 @@ public:
 
     static Chunk find(const std::string& arena, const std::string& name);
 
-    operator bool() const { return impl_ != nullptr; }
+    explicit operator bool() const noexcept { return impl_ != nullptr; }
 
     class Locked_data;
 
     Locked_data lock();
-    base::Optional<Locked_data> try_lock();
-    base::Optional<Locked_data> try_lock_for(const std::chrono::milliseconds& tiemout);
+    Locked_data try_lock();
+    Locked_data try_lock_for(const std::chrono::milliseconds& tiemout);
 
 private:
     std::shared_ptr<internal::Chunk> impl_;
@@ -52,6 +51,8 @@ public:
 
     Locked_data(Locked_data&& orig) noexcept;
     Locked_data& operator=(Locked_data&& orig) noexcept;
+
+    explicit operator bool() const noexcept { return impl_ != nullptr; }
 
     void* ptr();
     size_t size() const;

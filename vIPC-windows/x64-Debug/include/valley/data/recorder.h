@@ -19,11 +19,18 @@ namespace internal {
 class LIBVALLEY_DATA_EXPORT Recorder
 {
 public:
-    explicit Recorder(const std::string& name);
+    Recorder();
     ~Recorder();
 
     Recorder(const Recorder&) = delete;
     Recorder& operator=(const Recorder&) = delete;
+
+    Recorder(Recorder&& orig) noexcept;
+    Recorder& operator=(Recorder&& orig) noexcept;
+
+    static Recorder create(const std::string& name);
+
+    explicit operator bool() const noexcept { return impl_ != nullptr; }
 
     void record(Trigger::Ptr&& trigger);
 

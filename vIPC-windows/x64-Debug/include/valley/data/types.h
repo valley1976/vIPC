@@ -14,7 +14,8 @@ struct McapWriterOptions;
 namespace valley {
 namespace data {
 
-using Time_point    = std::chrono::high_resolution_clock::time_point;
+using Clock         = std::chrono::system_clock;
+using Time_point    = std::chrono::system_clock::time_point;
 using Topic_id      = size_t;
 
 }
