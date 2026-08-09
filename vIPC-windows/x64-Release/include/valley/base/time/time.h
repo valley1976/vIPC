@@ -7,14 +7,21 @@
 namespace valley {
 namespace base {
 
-using Timestamp_ns = uint64_t;
-
-inline Timestamp_ns to_ns(const Clock::time_point& tp) noexcept {
-    return std::chrono::duration_cast<std::chrono::nanoseconds>(tp.time_since_epoch()).count();
+template<typename Duration = std::chrono::milliseconds>
+inline Duration time_point_to(const Clock::time_point& pt) noexcept
+{
+    return std::chrono::duration_cast<Duration>(pt.time_since_epoch());
 }
 
-inline Clock::time_point from_ns(Timestamp_ns ts) noexcept{
-    return Clock::time_point{ std::chrono::nanoseconds(ts) };
+template<typename Duration = std::chrono::milliseconds>
+inline Clock::time_point time_point_from(Duration d) noexcept
+{
+    return Clock::time_point{ d };
+}
+
+inline std::chrono::milliseconds now_ms() noexcept
+{
+    return time_point_to<std::chrono::milliseconds>(Clock::now());
 }
 
 }

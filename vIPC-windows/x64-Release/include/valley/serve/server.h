@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <functional>
 #include <memory>
 #include <string>
@@ -28,7 +29,8 @@ public:
     Server(Server&& orig) noexcept;
     Server& operator=(Server&& orig) noexcept;
 
-    static Server create(const std::string& url, size_t max_client, const On_received_message& fn);
+    static Server create(const std::string& url, size_t max_client, const On_received_message& fn
+        , const std::chrono::milliseconds& timeout = std::chrono::seconds(3));
 
     explicit operator bool() const { return impl_ != nullptr; }
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <functional>
 #include <memory>
 #include <string>
@@ -24,7 +25,7 @@ public:
     Client(Client&& orig) noexcept;
     Client& operator=(Client&& orig) noexcept;
 
-    static Client create(const std::string& url);
+    static Client create(const std::string& url, const std::chrono::milliseconds& timeout = std::chrono::seconds(3));
 
     explicit operator bool() const { return impl_ != nullptr; }
 
