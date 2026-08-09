@@ -21,8 +21,6 @@ public:
     using Named_task = std::pair<std::string, Task>;
 
     Executor();
-    explicit Executor(const std::string& name, std::initializer_list<Named_task> task);
-    Executor(const std::string& name, const std::vector<Named_task>& task);
     ~Executor();
 
     Executor(const Executor&) = delete;
@@ -31,7 +29,10 @@ public:
     Executor(Executor&& orig) noexcept;
     Executor& operator=(Executor&& orig) noexcept;
 
-    bool is_valid() const { return impl_ != nullptr; }
+    static Executor create(const std::string& name, std::initializer_list<Named_task> task);
+    static Executor create(const std::string& name, const std::vector<Named_task>& task);
+
+    explicit operator bool() const noexcept { return impl_ != nullptr; }
 
     void schedule(size_t task_index);
 

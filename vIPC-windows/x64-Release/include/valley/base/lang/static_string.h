@@ -19,6 +19,7 @@ public:
         data_[0] = '\0';
     }
 
+    bool empty() const { return data_[0] == '\0'; }
     const char* c_str() const { return data_; }
     size_t length() const { return length_; }
 

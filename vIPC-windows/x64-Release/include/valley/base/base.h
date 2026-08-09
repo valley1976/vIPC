@@ -21,6 +21,8 @@
 #include "log/logger.h"
 #include "log/sink.h"
 #include "sync/synchronized.h"
+#include "time/clock.h"
+#include "time/time.h"
 #include "thread/channel.h"
 #include "thread/event.h"
 #include "thread/option.h"

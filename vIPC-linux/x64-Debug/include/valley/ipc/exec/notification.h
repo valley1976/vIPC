@@ -12,7 +12,6 @@ class LIBVALLEY_IPC_EXPORT Notification
 {
 public:
     Notification();
-    Notification(const std::string& executor, const std::string& task);
     ~Notification();
 
     Notification(const Notification&) = delete;
@@ -21,7 +20,9 @@ public:
     Notification(Notification&& orig) noexcept;
     Notification& operator=(Notification&& orig) noexcept;
 
-    bool is_valid() const { return impl_ != nullptr; }
+    static Notification create(const std::string& executor, const std::string& task);
+
+    explicit operator bool() const noexcept { return impl_ != nullptr; }
 
     void emit();
 
