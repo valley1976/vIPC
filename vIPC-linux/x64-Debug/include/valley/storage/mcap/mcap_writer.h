@@ -50,6 +50,7 @@ public:
     mcap::ChannelId add_flat_channel(const std::string& topic, mcap::SchemaId flat_schema_id);
 
     bool write(mcap::ChannelId channel_id, const void* ptr, size_t size, uint32_t sequence = 0, uint64_t publish_time_ns = 0);
+    uint64_t written_bytes() const;
     std::string status() const;
 
 private:

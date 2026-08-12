@@ -17,8 +17,8 @@ namespace data {
 namespace internal {
      class Recorder;
 
-     using Before_rollover = std::function<void(const std::string& /*recorder*/, const std::string& /*bundle*/, size_t /*sequence*/, base::SStr<256>&/*new file name*/)>;
-     using After_rollover  = std::function<void(const base::SStr<256>&/*saved file name*/)>;
+     using New_file = std::function<void(const std::string& /*recorder*/, const std::string& /*bundle*/, size_t /*sequence*/, base::SStr<256>&/*new file name*/)>;
+     using Close_file  = std::function<void(const base::SStr<256>&/*saved file name*/)>;
 }
 
 class LIBVALLEY_DATA_EXPORT Recorder
@@ -33,7 +33,7 @@ public:
     Recorder(Recorder&& orig) noexcept;
     Recorder& operator=(Recorder&& orig) noexcept;
 
-    static Recorder create(const std::string& name, const internal::Before_rollover& before = {}, const internal::After_rollover& after = {});
+    static Recorder create(const std::string& name, const internal::New_file& new_fn = {}, const internal::Close_file& close_fn = {});
 
     explicit operator bool() const noexcept { return impl_ != nullptr; }
 

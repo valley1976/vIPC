@@ -38,6 +38,7 @@ public:
 
     int poll(size_t max_count = std::numeric_limits<size_t>::max());
     int poll_wait(const Milliseconds& timeout = Milliseconds::max(), size_t max_count = std::numeric_limits<size_t>::max());
+    int poll_wait(const Milliseconds& timeout, size_t max_count, std::chrono::nanoseconds& waited_time);
 
     void run(std::atomic<bool>& stop_flag);
 

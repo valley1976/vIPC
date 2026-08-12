@@ -23,6 +23,8 @@ public:
     const Time_point end_time;
 
     uint64_t sequence; // reserve
+    std::vector<std::string> files; // reserve
+
     std::string description;
     std::vector<std::string> topic;
 
