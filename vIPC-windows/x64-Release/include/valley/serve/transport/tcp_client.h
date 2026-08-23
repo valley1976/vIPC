@@ -19,8 +19,8 @@ public:
     Tcp_client();
     virtual ~Tcp_client();
 
-    Tcp_client(const Tcp_client&) = delete;
-    Tcp_client& operator=(const Tcp_client&) = delete;
+    Tcp_client(const Tcp_client&);
+    Tcp_client& operator=(const Tcp_client&);
 
     Tcp_client(Tcp_client&& orig) noexcept;
     Tcp_client& operator=(Tcp_client&& orig) noexcept;

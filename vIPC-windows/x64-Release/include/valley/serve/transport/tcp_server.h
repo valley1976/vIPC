@@ -21,8 +21,8 @@ public:
     Tcp_server();
     virtual ~Tcp_server();
 
-    Tcp_server(const Tcp_server&) = delete;
-    Tcp_server& operator=(const Tcp_server&) = delete;
+    Tcp_server(const Tcp_server&);
+    Tcp_server& operator=(const Tcp_server&);
     
     Tcp_server(Tcp_server&& orig) noexcept;
     Tcp_server& operator=(Tcp_server&& orig) noexcept;
