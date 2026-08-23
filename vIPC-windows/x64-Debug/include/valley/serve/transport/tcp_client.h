@@ -35,6 +35,8 @@ public:
     void setup_keep_alive(bool enable) noexcept;
     void setup_no_delay(bool enable) noexcept;
 
+    bool is_connected();
+
     using On_connected = std::function<void()>;
     void set_on_connected(const On_connected& fn);
 
