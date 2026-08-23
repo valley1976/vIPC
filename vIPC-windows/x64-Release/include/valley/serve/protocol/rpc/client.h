@@ -18,8 +18,6 @@ class LIBVALLEY_SERVE_EXPORT Rpc_client
 {
 public:
     using Handler = std::function<Result<Message>(const Message&)>;
-
-    /// Notification handler — fire-and-forget, no return value
     using Notification_handler = std::function<void(const Message&)>;
 
     Rpc_client();

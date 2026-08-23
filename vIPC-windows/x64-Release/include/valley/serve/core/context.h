@@ -25,10 +25,13 @@ public:
     Context(Context&& orig);
     Context& operator=(Context&& orig);
 
-    std::shared_ptr<internal::Context>& impl();
+    const std::shared_ptr<internal::Context>& impl() const;
 
     void dispatch(const Task& task);
     void post(const Task& task);
+
+    void start();
+    void stop();
 
 private:
     std::shared_ptr<internal::Context> impl_;
