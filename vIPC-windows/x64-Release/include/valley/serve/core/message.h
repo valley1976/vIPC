@@ -14,58 +14,74 @@ class LIBVALLEY_SERVE_EXPORT Message
 {
 public:
     using Byte = uint8_t;
-    using Bytes = std::vector<Byte>;
-    using iterator = Bytes::iterator;
-    using citerator = Bytes::const_iterator;
+    using Payload = std::vector<Byte>;
+    using iterator  = Payload::iterator;
+    using const_iterator = Payload::const_iterator;
 
     Message();
     explicit Message(size_t size);
     ~Message();
 
-    Message(const Message& other) : Message() { bytes_ = other.bytes_; }
-    Message& operator=(const Message& other) { if (this != &other) bytes_ = other.bytes_; return *this; } 
+    Message(const Message& other) = delete;
+    Message& operator=(const Message& other) = delete;
+    
     Message(Message&& orig) noexcept;
     Message& operator=(Message&& orig) noexcept;
 
     void reserve(size_t size);
     void resize(size_t size);
 
-    bool empty() const { return bytes_.empty(); }
+    bool empty() const { return payload_.empty(); }
 
     Byte* data();
     const Byte* data() const;
     size_t size() const;
 
-    iterator begin() { return bytes_.begin(); }
-    iterator end()   { return bytes_.end(); }
+    iterator begin();
+    iterator end();
 
-    citerator begin() const { return bytes_.begin(); }
-    citerator end() const   { return bytes_.end(); }
+    const_iterator begin() const;
+    const_iterator end() const;
 
-    Byte& operator[](size_t pos) { return bytes_[pos]; }
-    const Byte& operator[](size_t pos) const { return bytes_[pos]; }
-
-    template<typename Iter>
-    void insert(iterator pos, Iter first, Iter last) { bytes_.insert(pos, first, last); }
+    Byte& operator[](size_t pos);
+    const Byte& operator[](size_t pos) const;
 
     template<typename Iter>
-    void append(Iter first, Iter last) { bytes_.insert(bytes_.end(), first, last); }
+    void insert(iterator pos, Iter first, Iter last);
+
+    template<typename Iter>
+    void append(Iter first, Iter last);
+
+    Message consume(size_t size);
 
 private:
     class Bin;
 
     Bin* bin_ = nullptr;
-    Bytes bytes_;
+    Payload payload_;
 };
 
 // inline 
 
-inline Message::Message(size_t size) : Message()        { resize(size); }
+inline Message::Byte* Message::data()                   { return payload_.data(); }
+inline const Message::Byte* Message::data() const       { return payload_.data(); }
 
-inline Message::Byte* Message::data()                   { return bytes_.data(); }
-inline const Message::Byte* Message::data() const       { return bytes_.data(); }
+inline size_t Message::size() const                     { return payload_.size(); }
 
-inline size_t Message::size() const                     { return bytes_.size(); }
+inline Message::iterator Message::begin() { return payload_.begin(); }
+inline Message::iterator Message::end()   { return payload_.end(); }
+
+inline Message::const_iterator Message::begin() const { return payload_.begin(); }
+inline Message::const_iterator Message::end() const   { return payload_.end(); }
+
+inline Message::Byte& Message::operator[](size_t pos) { return payload_[pos]; }
+inline const Message::Byte& Message::operator[](size_t pos) const { return payload_[pos]; }
+
+template<typename Iter>
+inline void Message::insert(iterator pos, Iter first, Iter last) { payload_.insert(pos, first, last); }
+
+template<typename Iter>
+inline void Message::append(Iter first, Iter last) { payload_.insert(payload_.end(), first, last); }
 
 Message LIBVALLEY_SERVE_EXPORT make_message(const char* str);
 Message LIBVALLEY_SERVE_EXPORT make_message(const std::string& str);

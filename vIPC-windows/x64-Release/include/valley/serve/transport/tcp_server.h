@@ -2,7 +2,6 @@
 
 #include <memory>
 
-#include "valley/serve/core/types.h"
 #include "valley/serve/core/context.h"
 #include "valley/serve/core/message.h"
 
@@ -19,7 +18,7 @@ class LIBVALLEY_SERVE_EXPORT Tcp_server
 {
 public:
     Tcp_server();
-    virtual ~Tcp_server();
+    ~Tcp_server();
 
     Tcp_server(const Tcp_server&);
     Tcp_server& operator=(const Tcp_server&);
@@ -45,10 +44,10 @@ public:
     using On_received = std::function<void(Tcp_session&, Message&, const void*, size_t)>;
     void set_on_received(const On_received& fn);
 
-    virtual bool start();
-    virtual void stop();
+    bool start_accept();
+    void stop();
 
-    virtual bool disconnect_all();
+    bool disconnect_all();
 
 private:
     std::shared_ptr<internal::Tcp_server> impl_;
