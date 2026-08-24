@@ -62,16 +62,13 @@ private:
 
 inline Message::Message(size_t size) : Message()        { resize(size); }
 
-inline void Message::reserve(size_t size)               { bytes_.reserve(size); }
-inline void Message::resize(size_t size)                { bytes_.resize(size); }
-
 inline Message::Byte* Message::data()                   { return bytes_.data(); }
 inline const Message::Byte* Message::data() const       { return bytes_.data(); }
 
 inline size_t Message::size() const                     { return bytes_.size(); }
 
-Message make_message(const char* str);
-Message make_message(const std::string& str);
+Message LIBVALLEY_SERVE_EXPORT make_message(const char* str);
+Message LIBVALLEY_SERVE_EXPORT make_message(const std::string& str);
 
 }
 }

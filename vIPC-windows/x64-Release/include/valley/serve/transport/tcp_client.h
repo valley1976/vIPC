@@ -37,21 +37,20 @@ public:
 
     bool is_connected();
 
-    using On_connected = std::function<void()>;
-    void set_on_connected(const On_connected& fn);
-
-    using On_received = std::function<void(const void*, size_t)>;
+    using On_received = std::function<void(Message&, const void*, size_t)>;
     void set_on_received(const On_received& fn);
 
     bool connect();
 
-    bool send_async(Message&& msg);
+    using On_connected = std::function<void()>;
+    void connect_async(const On_connected& fn, bool auto_reconection = true);
 
-    bool receive_async(Message& msg, void* buffer, size_t size);
-    bool receive_at_least_async(Message& msg, void* buffer, size_t size, size_t at_least);
-    bool receive_exactly_async(Message& msg, void* buffer, size_t size, size_t exactly);
+    bool send_async(Message&& msg) const;
 
-    virtual bool disconnect();
+    bool receive_async(size_t size = 4 * 1024, size_t at_least = 0) const;
+    bool receive_exactly_async(size_t size) const;
+
+    bool disconnect() const;
 
 private:
     std::shared_ptr<internal::Tcp_client> impl_;

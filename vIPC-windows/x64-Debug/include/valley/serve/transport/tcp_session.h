@@ -27,9 +27,8 @@ public:
 
     bool send_async(Message&& msg);
 
-    bool receive_async(Message& msg, void* buffer, size_t size);
-    bool receive_at_least_async(Message& msg, void* buffer, size_t size, size_t at_least);
-    bool receive_exactly_async(Message& msg, void* buffer, size_t size, size_t exactly);
+    bool receive_async(size_t size = 4 * 1024, size_t at_least = 0);
+    bool receive_exactly_async(size_t size);
 
     void disconnect();
 
