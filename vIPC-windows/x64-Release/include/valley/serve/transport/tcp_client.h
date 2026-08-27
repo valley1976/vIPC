@@ -8,8 +8,9 @@
 namespace valley {
 namespace serve {
 
-namespace internal {
-class Tcp_client;
+namespace tcp {
+class Session;
+class Client;
 }
 
 class LIBVALLEY_SERVE_EXPORT Tcp_client
@@ -36,21 +37,16 @@ public:
 
     bool is_connected();
 
-    using On_received = std::function<void(Message&, const void*, size_t)>;
+    using On_received = std::function<void(tcp::Session&, Message&, const void*, size_t)>;
     void set_on_received(const On_received& fn);
 
-    using On_connected = std::function<void()>;
+    using On_connected = std::function<void(tcp::Session&)>;
     void connect_async(const On_connected& fn, bool auto_reconection = true);
-
-    bool send_async(Message&& msg) const;
-
-    bool receive_async(size_t size = 4 * 1024, size_t at_least = 0) const;
-    bool receive_exactly_async(size_t size) const;
 
     bool disconnect() const;
 
 private:
-    std::shared_ptr<internal::Tcp_client> impl_;
+    std::shared_ptr<tcp::Client> impl_;
 };
 
 }

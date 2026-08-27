@@ -28,6 +28,9 @@ public:
     Message(Message&& orig) noexcept;
     Message& operator=(Message&& orig) noexcept;
 
+    static void set_max_size(size_t kb);
+    static size_t max_size();
+
     void reserve(size_t size);
     void resize(size_t size);
 
@@ -57,6 +60,7 @@ public:
 private:
     class Bin;
 
+    static size_t max_size_;
     Bin* bin_ = nullptr;
     Payload payload_;
 };
@@ -65,6 +69,8 @@ private:
 
 inline Message::Byte* Message::data()                   { return payload_.data(); }
 inline const Message::Byte* Message::data() const       { return payload_.data(); }
+
+inline size_t Message::max_size() { return max_size_; }
 
 inline size_t Message::size() const                     { return payload_.size(); }
 

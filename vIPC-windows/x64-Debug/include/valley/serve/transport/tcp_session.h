@@ -9,14 +9,14 @@
 namespace valley {
 namespace serve {
 
-namespace internal {
-class Tcp_session;
+namespace tcp {
+class Session;
 }
 
 class LIBVALLEY_SERVE_EXPORT Tcp_session
 {
 public:
-    explicit Tcp_session(internal::Tcp_session& impl);
+    explicit Tcp_session(tcp::Session& impl);
     ~Tcp_session() = default;
 
     Tcp_session(const Tcp_session&) = delete;
@@ -33,7 +33,7 @@ public:
     void disconnect();
 
 private:
-    internal::Tcp_session& impl_;
+    tcp::Session& impl_;
 };
 
 }
