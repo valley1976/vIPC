@@ -5,6 +5,8 @@
 namespace valley {
 namespace base {
 
+using tl::nullopt;
+
 template<typename T>
 using Optional = tl::optional<T>;
 

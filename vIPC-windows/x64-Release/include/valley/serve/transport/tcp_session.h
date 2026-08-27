@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include <valley/base/lang/storage.h>
+#include <valley/base/lang/any.h>
 #include "valley/serve/core/types.h"
 #include "valley/serve/core/message.h"
 
@@ -24,6 +24,9 @@ public:
 
     Tcp_session(Tcp_session&& orig) noexcept = delete;
     Tcp_session& operator=(Tcp_session&& orig) noexcept = delete;
+
+    base::Any& user_data() noexcept;
+    const base::Any& user_data() const noexcept;
 
     bool send_async(Message&& msg);
 
