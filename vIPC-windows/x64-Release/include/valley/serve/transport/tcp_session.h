@@ -4,7 +4,7 @@
 
 #include <valley/base/lang/any.h>
 #include "valley/serve/core/types.h"
-#include "valley/serve/core/message.h"
+#include "valley/serve/core/bytes.h"
 
 namespace valley {
 namespace serve {
@@ -28,10 +28,11 @@ public:
     base::Any& user_data() noexcept;
     const base::Any& user_data() const noexcept;
 
-    bool send_async(Message&& msg);
+    bool send_async(Bytes&& bytes);
 
     bool receive_async(size_t size = 4 * 1024, size_t at_least = 0);
     bool receive_exactly_async(size_t size);
+    void consume_received(size_t bytes);
 
     void disconnect();
 

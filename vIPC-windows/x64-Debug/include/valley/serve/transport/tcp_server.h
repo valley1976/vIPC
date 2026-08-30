@@ -3,7 +3,7 @@
 #include <memory>
 
 #include "valley/serve/core/context.h"
-#include "valley/serve/core/message.h"
+#include "valley/serve/core/bytes.h"
 
 namespace valley {
 namespace serve {
@@ -38,7 +38,7 @@ public:
     using On_connected = std::function<void(tcp::Session&)>;
     void set_on_connected(const On_connected& fn);
 
-    using On_received = std::function<void(tcp::Session&, Message&, const void*, size_t)>;
+    using On_received = std::function<void(tcp::Session&, const Bytes_type&)>;
     void set_on_received(const On_received& fn);
 
     bool start_accept();
