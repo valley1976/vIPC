@@ -25,7 +25,7 @@ public:
 
     bool is_request() const;
     bool is_response() const;
-    bool is_nitification() const;
+    bool is_notification() const;
 
     Byte* data()                { return bytes_.data(); }
     const Byte* data() const    { return bytes_.data(); }

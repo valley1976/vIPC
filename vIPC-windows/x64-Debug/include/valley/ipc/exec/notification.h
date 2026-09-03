@@ -15,7 +15,7 @@ public:
     ~Notification();
 
     Notification(const Notification&) = delete;
-    Notification operator =(const Notification&) = delete;
+    Notification& operator =(const Notification&) = delete;
 
     Notification(Notification&& orig) noexcept;
     Notification& operator=(Notification&& orig) noexcept;

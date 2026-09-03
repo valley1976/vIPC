@@ -5,11 +5,12 @@
 #include "valley/serve/core/context.h"
 #include "valley/serve/core/bytes.h"
 
+#include "tcp_session.h"
+
 namespace valley {
 namespace serve {
 
 namespace tcp {
-class Session;
 class Client;
 }
 
@@ -37,13 +38,16 @@ public:
 
     bool is_connected();
 
-    using On_received = std::function<void(tcp::Session&, const Bytes_type&)>;
-    void set_on_received(const On_received& fn);
+    using On_received = std::function<void(Tcp_session&, const Bytes_type&)>;
+    void set_on_received(On_received fn);
 
-    using On_connected = std::function<void(tcp::Session&)>;
-    void set_on_connected(const On_connected& fn);
+    using On_connected = std::function<void(Tcp_session&)>;
+    void set_on_connected(On_connected fn);
 
-    void connect_async(bool auto_reconection = true);
+    using On_error = std::function<void(Tcp_session&, std::error_code)>;
+    void set_on_error(On_error fn);
+
+    void connect_async(bool auto_reconnection = true);
 
     bool disconnect() const;
 

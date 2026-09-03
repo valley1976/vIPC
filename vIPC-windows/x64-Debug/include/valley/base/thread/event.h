@@ -25,7 +25,7 @@ public:
     uint32_t get();
     
     void wait();
-    bool wait(int millisencds);
+    bool wait(int milliseconds);
 
     size_t max_signal() const;
 

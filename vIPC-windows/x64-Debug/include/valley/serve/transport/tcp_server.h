@@ -1,15 +1,18 @@
 #pragma once
 
+#include <functional>
 #include <memory>
+#include <system_error>
 
 #include "valley/serve/core/context.h"
 #include "valley/serve/core/bytes.h"
+
+#include "tcp_session.h"
 
 namespace valley {
 namespace serve {
 
 namespace tcp {
-class Session;
 class Server;
 }
 
@@ -35,11 +38,14 @@ public:
     void setup_reuse_address(bool enable) noexcept;
     void setup_reuse_port(bool enable) noexcept;
 
-    using On_connected = std::function<void(tcp::Session&)>;
-    void set_on_connected(const On_connected& fn);
+    using On_connected = std::function<void(Tcp_session&)>;
+    void set_on_connected(On_connected fn);
 
-    using On_received = std::function<void(tcp::Session&, const Bytes_type&)>;
-    void set_on_received(const On_received& fn);
+    using On_received = std::function<void(Tcp_session&, const Bytes_type&)>;
+    void set_on_received(On_received fn);
+
+    using On_error = std::function<void(Tcp_session&, std::error_code)>;
+    void set_on_error(On_error fn);
 
     bool start_accept();
     void stop();

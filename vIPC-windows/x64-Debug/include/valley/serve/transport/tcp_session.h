@@ -1,9 +1,11 @@
 #pragma once
 
+#include <functional>
 #include <memory>
+#include <system_error>
 
-#include <valley/base/lang/any.h>
-#include "valley/serve/core/types.h"
+#include "valley/base/lang/any.h"
+#include "valley/base/lang/uuid.h"
 #include "valley/serve/core/bytes.h"
 
 namespace valley {
@@ -12,6 +14,21 @@ namespace serve {
 namespace tcp {
 class Session;
 }
+
+class Tcp_session;
+
+struct Tcp_event
+{
+    using On_connected      = std::function<void(Tcp_session&)>;
+    using On_received       = std::function<void(Tcp_session&, const Bytes_type&)>;
+    using On_disconnected   = std::function<void(Tcp_session&)>;
+    using On_error          = std::function<void(Tcp_session&, std::error_code)>;
+
+    On_connected            on_connected;
+    On_disconnected         on_disconnected;
+    On_received             on_received;
+    On_error                on_error;
+};
 
 class LIBVALLEY_SERVE_EXPORT Tcp_session
 {
@@ -24,6 +41,10 @@ public:
 
     Tcp_session(Tcp_session&& orig) noexcept = delete;
     Tcp_session& operator=(Tcp_session&& orig) noexcept = delete;
+
+    tcp::Session& session() { return impl_; }
+
+    const base::UUID& id() const;
 
     base::Any& user_data() noexcept;
     const base::Any& user_data() const noexcept;

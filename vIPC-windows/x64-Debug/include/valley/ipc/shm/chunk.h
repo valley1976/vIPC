@@ -35,7 +35,7 @@ public:
 
     Locked_data lock();
     Locked_data try_lock();
-    Locked_data try_lock_for(const std::chrono::milliseconds& tiemout);
+    Locked_data try_lock_for(const std::chrono::milliseconds& timeout);
 
 private:
     std::shared_ptr<internal::Chunk> impl_;
