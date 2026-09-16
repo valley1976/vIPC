@@ -5,13 +5,13 @@
 #include <system_error>
 #include <functional>
 
-#include "valley/base/errors/expected.h"
 #include "valley/base/lang/optional.h"
 
+#include "expected.h"
 #include "error.h"
 
 namespace valley {
-namespace serve {
+namespace base {
 // ---------------------------------------------------------------------------
 // Error type
 // ---------------------------------------------------------------------------
@@ -71,7 +71,7 @@ struct Error {
 
 template <typename T>
 class Result {
-    base::Expected<T, Error> data_;
+    Expected<T, Error> data_;
 public:
     Result(T v) : data_(std::move(v)) {}          // NOLINT
     Result(Error e) : data_(base::make_unexpected(e)) {}      // NOLINT
@@ -90,7 +90,7 @@ public:
 
 template <>
 class Result<void> {
-    base::Optional<Error> error_;
+    Optional<Error> error_;
 public:
     Result() = default;                                    // NOLINT
     Result(Error e) : error_(std::move(e)) {}              // NOLINT

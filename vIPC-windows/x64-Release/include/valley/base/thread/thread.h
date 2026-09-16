@@ -1,14 +1,5 @@
 #pragma once
 
-#ifdef _WIN32
-#include <Windows.h>
-#undef Yield
-#undef max
-#undef min
-#else
-#include <time.h>
-#endif // !_WIN32
-
 #include <cstdint>
 #include <chrono>
 #include <atomic>

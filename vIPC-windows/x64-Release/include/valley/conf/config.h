@@ -4,6 +4,7 @@
 #include <vector>
 #include <unordered_map>
 
+/*
 static constexpr auto kConfig_demo = R"(
 {
     "application": "vIPC",
@@ -56,13 +57,14 @@ static constexpr auto kConfig_demo = R"(
         {
             "name": "group0",
             "chunk": [
-                { "name": "chnk0", "size": 512}
+                { "name": "chnk0", "size": 512},
                 { "name": "chnk1", "size": 32}
             ]
         }
     ]
 }
 )";
+*/
 
 namespace valley {
 namespace conf {

@@ -185,10 +185,9 @@ inline void Channel::Subscriber::read_all(const Fn& fn)
 template<typename T, typename Fn>
 inline void Channel::Subscriber::read_all(const Fn& fn)
 {
-    size_t size;
     const T* ptr;
-    while ((ptr = read<T>(size)) != nullptr)
-        fn(ptr, size);
+    while ((ptr = read<T>()) != nullptr)
+        fn(ptr);
 }
 
 }

@@ -4,7 +4,7 @@
 #include <system_error>
 
 namespace valley {
-namespace serve {
+namespace base {
 
 enum class Status : int32_t
 {
@@ -96,6 +96,6 @@ inline const char* status_to_string(Status status)
 
 namespace std {
 template<>
-struct is_error_code_enum<valley::serve::Status> : true_type {};
+struct is_error_code_enum<valley::base::Status> : true_type {};
 
 }
