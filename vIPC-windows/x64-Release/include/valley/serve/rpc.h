@@ -98,7 +98,7 @@ enum class Status : std::uint16_t {
 };
 
 // 状态码的可读名字（诊断/日志用；未知值返回 "unknown"）。
-const char* statusName(Status status) noexcept;
+LIBVALLEY_SERVE_EXPORT const char* statusName(Status status) noexcept;
 
 // 一次请求。载荷统一是字节（协议里的 AnyPointer 按 Data 传，见 docs/api.md §14.4）。
 struct Request {
@@ -170,7 +170,7 @@ public:
 // 定时器句柄（可拷贝、可默认构造）。`cancel()` 幂等且线程安全。
 // 语义：cancel() 只保证"回调不再执行"，**不**保证立刻从内核定时器里摘除
 // （已经挂上的那一次到点后会发现被取消，然后什么都不做）。
-class Timer {
+class LIBVALLEY_SERVE_EXPORT Timer {
 public:
   Timer() = default;
   Timer(const Timer&) = default;
@@ -203,7 +203,7 @@ private:
 //   * 可以共享：一个 EventLoop 挂多个 Client/Server（一线程多节点），
 //     不必为每条连接开一个循环；
 //   * 不引入全局单例：测试、多实例、嵌入式场景都能各自持有独立的循环。
-class EventLoop {
+class LIBVALLEY_SERVE_EXPORT EventLoop {
 public:
   // 在**当前线程**创建循环；一个线程同时只能有一个（违反抛 Error，不会把进程带走）。
   EventLoop();
@@ -297,7 +297,7 @@ using DisconnectHandler = std::function<void()>;
 //      之后用 `alive()` 清理断开的连接（见 `Peer::connectionId()`）。
 //   对端的 bootstrap 只有在对方设置了 `onRequest`/`onEvent` 时才存在；没装时服务端的
 //   Peer 依然 valid、alive，但调用会干净地以 Outcome.error 失败。
-class Peer {
+class LIBVALLEY_SERVE_EXPORT Peer {
 public:
   Peer() = default;   // 空句柄：valid() == false
   Peer(const Peer&) = default;
@@ -381,7 +381,7 @@ struct ClientOptions {
 // 广播时每条连接的结果（连接 id + 该次推送的结果）
 using BroadcastCallback = std::function<void(ConnectionId, Outcome)>;
 
-class Server {
+class LIBVALLEY_SERVE_EXPORT Server {
 public:
   // 在给定的事件循环上开始监听：绑定失败会**同步**抛 TransportError（消息里带原始错误）。
   // loop 必须比本对象活得久，并且之后所有成员调用都必须在 loop 的属主线程上进行。
@@ -440,7 +440,7 @@ struct PingResult {
   std::uint8_t load = 0;          // 对端负载 0~100（本实现固定 0）
 };
 
-class Client {
+class LIBVALLEY_SERVE_EXPORT Client {
 public:
   // 在给定的事件循环上发起连接。**连接失败不在这里抛**（异步），失败走 onError；
   // 之后 call() 会抛 TransportError。
