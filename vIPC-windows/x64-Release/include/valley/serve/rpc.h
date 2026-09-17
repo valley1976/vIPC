@@ -15,13 +15,17 @@
 //
 // 线程模型与事件循环（必须先读）：
 //   * **事件循环是显式的**：先建 `valley_rpc::EventLoop`，再把它交给 Server/Client。
-//     和底层 `capnp::EventLoop` 一样，循环不是全局单例、也不会被藏进对象里；
-//     谁创建、谁运行、谁负责它的生命周期，都由调用方决定。
-//   * `EventLoop` 属于**创建它的那个线程**，绑定到它的 Server/Client 也必须在同一个
-//     线程上使用（KJ 的硬性约束）。一个线程同时只能有一个 `EventLoop`
+//     循环可以自己带一个后台线程（`Mode::kBackgroundThread`），也可以留在调用线程上由你
+//     驱动（`Mode::kCallerDriven`，默认）；它不会被藏进 Server/Client 里，也不会自己
+//     在被用到时偷偷创建（唯一的例外是显式调用的 `EventLoop::defaultEventLoop()`）。
+//   * 循环属于**它的属主线程**：`kCallerDriven` 就是创建它的线程；`kBackgroundThread`
+//     是它自己起的那个后台线程。绑定到它的 Server/Client 必须在那个线程上创建与使用
+//     （KJ 的硬性约束）。一个线程同时只能有一个属于它的 `EventLoop`
 //     （违反会抛 Error，而不是让 KJ abort 进程）。
-//   * 跨线程只有两个入口：`EventLoop::stop()`（结束别的线程上的 `run()`）和
-//     `EventLoop::post()`（往别的线程的循环上投任务）；其余全部限定在属主线程。
+//   * **跨线程只有三个入口**：`EventLoop::stop()`（结束别的线程上的 `run()`）、
+//     `EventLoop::post()`（往别的线程的循环上投任务）、`Timer::cancel()`（停别的线程
+//     注册的定时器）；其余全部限定在属主线程。
+//   * 后台模式的完整用法（钩子建对象、关停顺序）见 docs/api.md §14.11。
 //   * 循环自带任务队列与定时器（`post` / `setTimeout` / `setInterval`，见 api.md §14.9）：
 //     它们的回调和对端回调一样在循环线程上执行、一样不能阻塞。
 //   * **同一个 EventLoop 可以挂多个 Client/Server**（"一线程多节点"）—— 这正是显式循环
@@ -34,7 +38,7 @@
 //         （见 docs/api.md §14.5）。
 //   * **所有用户回调都在所属 EventLoop 的线程上执行**，且**回调里不能再做阻塞调用**
 //     （KJ 禁止在事件回调里 wait()）：门面会检测这种误用并抛 Error，要发起的调用请用
-//     `callAsync()` / `pushEventAsync()` / `Peer` 的异步接口。
+//     `callAsync()` / `pushEventAsync()`，或者 `Peer` 上的 `*Async` 接口（Peer 只有异步版）。
 //   * 阻塞接口的 timeout = 0 表示"用 Options::callTimeout"；而 Options::callTimeout = 0
 //     表示"不限时"（对端不回复就会一直等）。
 //
@@ -112,7 +116,7 @@ struct Request {
 };
 
 // 一次响应。
-struct Response {
+struct LIBVALLEY_SERVE_EXPORT Response {
   Status status = Status::ok;
   std::string message;            // 人类可读说明 / 错误信息
   Bytes result;                   // 返回负载（字节）
@@ -194,19 +198,59 @@ private:
 };
 
 // =====================================================================
-// EventLoop：显式事件循环（和底层 capnp::EventLoop 一个地位）
+// EventLoop：事件循环（两种模式）
 //
-// 门面**不会**把事件循环藏进 Server/Client 里：先建循环，再建对象。
-// 这样做的理由和底层一致（见 design.md §3.1）：
-//   * 生命周期显式：谁创建、谁销毁、谁保证"循环比对象活得久"一目了然；
-//   * 线程亲缘显式：循环属于创建它的线程，绑定它的对象也必须在该线程使用；
-//   * 可以共享：一个 EventLoop 挂多个 Client/Server（一线程多节点），
-//     不必为每条连接开一个循环；
-//   * 不引入全局单例：测试、多实例、嵌入式场景都能各自持有独立的循环。
+// 门面不会把循环藏进 Server/Client 里：先建循环，再建对象。两种模式：
+//
+//   * `kCallerDriven`（**默认**）：循环属于**调用线程**，由调用方驱动 —— `run()` 阻塞跑，
+//     或者用阻塞调用 / `pump()` 推进。线程、生命周期、驱动时机全在调用方手里。
+//   * `kBackgroundThread`：循环独占一个**后台线程**，构造函数返回时它已经在跑了
+//     （即"每个服务/客户端各带一个线程"那种老式用法）。调用线程只能
+//     `post()` / `stop()` / `Timer::cancel()`；要创建 Server/Client/定时器就用
+//     `onThreadStart` 钩子 —— 它在循环线程上、KJ 循环就绪之后、`run()` 之前执行。
+//
+// 两种模式共同遵守的规则：
+//   * 一个线程同时只能有一个"属于它"的 `EventLoop`（KJ 的硬性限制，违反抛 Error）；
+//   * `Server`/`Client`/定时器都必须在循环的**属主线程**上创建与销毁；
+//   * **跨线程只有三个入口**：`EventLoop::post`、`EventLoop::stop`、`Timer::cancel`。
+//     其余成员（包括异步发起、`setTimeout`/`setInterval`、Server/Client 的任何成员）
+//     在别的线程调用都会抛 `Error`；后台模式下构造 Server/Client 会给出
+//     "该用 onThreadStart"的提示（而不是让 KJ 在别的线程上 abort）。
+//   * 一个循环可以挂多个 Server/Client（一线程多节点）。
+//
+// 为什么默认是 `kCallerDriven`：库不该替宿主决定线程（线程数、亲和性、优先级都是宿主的
+// 决定）。`kBackgroundThread` 是给"我就想要一个能直接用的循环"准备的便利模式；
+// `defaultEventLoop()` 更进一步，给一个进程级默认循环（代价见它的注释）。
+// 完整的线程用法见 docs/api.md §14.11。
 class LIBVALLEY_SERVE_EXPORT EventLoop {
 public:
-  // 在**当前线程**创建循环；一个线程同时只能有一个（违反抛 Error，不会把进程带走）。
-  EventLoop();
+  enum class Mode {
+    kCallerDriven,      // 默认：循环属于调用线程，由 run()/pump()/阻塞调用推进
+    kBackgroundThread   // 循环独占一个后台线程，构造返回时已经在跑
+  };
+
+  // kCallerDriven：在**当前线程**创建循环；一个线程同时只能有一个（违反抛 Error）。
+  // kBackgroundThread：起一个后台线程，在该线程上建 KJ 循环并跑 `run()`；本构造函数
+  //   会等它启动完成再返回（KJ 循环建不起来、或 onThreadStart 抛异常 → 原样抛给调用方，
+  //   并保证后台线程被 join 掉，不会留下"joinable 的线程"）。
+  //
+  // onThreadStart：只对 kBackgroundThread 有意义。它在循环线程上、KJ 循环就绪之后、
+  //   `run()` 之前执行，参数就是**这个循环**。**凡是要绑到这个循环上的对象都在这里建**：
+  //
+  //     std::shared_ptr<Server> server;
+  //     EventLoop loop(EventLoop::Mode::kBackgroundThread, [&](EventLoop& self) {
+  //       server = std::make_shared<Server>(self, opts);   // 用参数 self，别写外层变量名
+  //       self.setInterval(100ms, [&]() { /* 定时器也只能在这里注册 */ });
+  //     });
+  //
+  //   为什么要传参数而不是让钩子捕获外层变量：`EventLoop loop(..., [&]{ ... loop ... })`
+  //   里的钩子出现在 `loop` 自己的初始化器里 —— 那时 `loop` 还没声明（GCC 会放过，MSVC 直接
+  //   报 C2065）。用参数就没有这个问题，也适用于"循环是成员/在不同作用域里"的场景。
+  //
+  //   钩子里还可以做一次阻塞调用（例如 `client->waitConnected(3s)`）—— 此时 `run()` 还没
+  //   开始，循环线程是"顶层"上下文。
+  EventLoop(Mode mode = Mode::kCallerDriven,
+            const std::function<void(EventLoop&)>& onThreadStart = {});
   ~EventLoop() noexcept;
 
   EventLoop(const EventLoop&) = delete;
@@ -230,7 +274,7 @@ public:
   //
   // 三个接口的回调都在**本循环的线程**上执行，并且和"对端回调"同等待遇：
   // 里面**不能做阻塞调用**（KJ 禁止在事件回调里 wait()），要发请求就用
-  // callAsync()/pushEventAsync()/Peer 的异步接口。回调里抛异常会被兜住并记 ERROR 日志
+  // callAsync()/pushEventAsync()/Peer 上的 *Async 接口。回调里抛异常会被兜住并记 ERROR 日志
   // （不会把循环带走）。
 
   // 把 task 排到本循环上执行（下一次循环轮次）。**任意线程都可以调用**：
@@ -252,6 +296,16 @@ public:
   //  这里只有前置声明，用户拿到它什么也做不了。）
   struct Impl;
   Impl& impl() const noexcept;
+
+  // 进程级默认循环：首次调用时创建一个 `kBackgroundThread` 模式的循环并返回它，
+  // 之后每次都返回同一个（静态对象析构时先 stop 再 join 后台线程）。
+  //   * 便利：不用自己管循环的线程与生命周期；
+  //   * 代价：它是**全局单例** —— 正是 `kCallerDriven` 想避免的东西；而且**不要在静态对象里
+  //     绑它**（静态析构顺序不可控）。要精确控制生命周期就自己建 `EventLoop`。
+  //   * 注意：绑到它上面的对象仍然必须在**它的线程**上创建 —— 后台模式没有例外，
+  //     用上面的 `onThreadStart` 钩子（`defaultEventLoop()` 本身没法带钩子，
+  //     所以典型用法是自己建 EventLoop；它更适合"只想 post 点任务进去跑"的场景）。
+  static EventLoop& defaultEventLoop();
 
 private:
   std::unique_ptr<Impl> impl_;
@@ -277,6 +331,38 @@ using EventHandler = std::function<Status(const Event&, const Peer&)>;
 using ErrorHandler = std::function<void(std::string)>;
 // 已建立的连接断开（Client 用；每条连接一次，初次连接失败走 onError）。
 using DisconnectHandler = std::function<void()>;
+
+// =====================================================================
+// 零拷贝的两个"借用"接口（大载荷才有意义，见 docs/api.md §14.10）
+//
+// 默认路径里，一次调用的载荷会被搬 1~2 次（用户数据 -> Bytes -> capnp 消息段）。
+// 数据小的时候这些拷贝完全无所谓（实测 4 B 载荷整条编码路径 ~0.2 µs，占往返 0.2%）；
+// 数据大的时候它们能占往返的百分之几。下面两个类型把"可省的那两次"交回给调用方决定：
+
+// 只读字节视图（**借用**语义，不拥有数据）。
+// 它指向对端消息内部的一段内存：**只在回调执行期间有效**。回调返回后底层消息就被销毁了，
+// 所以不要把 data 存下来、也不要跨回调使用。
+struct ByteView {
+  const std::uint8_t* data = nullptr;
+  std::size_t size = 0;
+
+  const std::uint8_t* begin() const noexcept { return data; }
+  const std::uint8_t* end() const noexcept { return data + size; }
+  bool empty() const noexcept { return size == 0; }
+};
+
+// 就地填充：门面在 capnp 消息段里给你 paramsSize 字节，你直接往里写。
+// 省掉"先建 Bytes 再拷进消息"的那一份（用户侧少一次分配 + 一次拷贝）。
+//   * 回调在本次调用**返回之前**同步执行（发送前）；
+//   * 传空 filler（默认构造的 std::function）表示"那段内存保持全 0"；
+//   * paramsSize 为 0 时不会调用 filler。
+using PayloadFiller = std::function<void(std::uint8_t* data, std::size_t size)>;
+
+// 结果借用视图回调：在消息还活着的时候直接读对端给的载荷，不再拷进 Response::result。
+//   * `outcome.response.result` **恒为空**（载荷在 view 里）；status/message/id/serverTime 照常；
+//   * view 只在回调期间有效（同上）；
+//   * 一定恰好被调用一次：成功时 view 有数据，传输失败/超时/解析失败时 view 为空。
+using ResultViewCallback = std::function<void(const Outcome& outcome, ByteView result)>;
 
 // =====================================================================
 // Peer：对端句柄（双向对等的关键）
@@ -322,16 +408,34 @@ public:
   // 客户端的 Peer 不绑定单条连接（跨重连有效），空句柄也一样，都返回 0。
   ConnectionId connectionId() const noexcept;
 
-  // ---- 异步接口（回调里只能用这些版本，见文件头线程模型）----
+  // ---- 异步接口：**Peer 上只有这些版本**（回调里只能用它们，见文件头线程模型）----
+  //
+  // 为什么这里每个方法都带 Async 后缀：`Client` 上有同名的**阻塞**版本
+  // （`Client::call` 返回 Response、`Client::pushEvent` 返回 Status……），
+  // 而 Peer 上的同名方法是"结果走回调、立即返回"。两处同名不同义是最容易误用的一类坑
+  // （尤其在回调里把 Peer 的调用当成阻塞调用写），所以让名字自己说清楚：
+  // 带 Async = 结果稍后到；不带 Async 的阻塞版本只存在于 Client 上。
+  //
   // timeout 为 0 表示用所属 Server/Client 的 Options::callTimeout。
-  void call(const Request& request, Callback callback, Millis timeout = Millis{0}) const;
-  void call(std::string_view method, Bytes params, Callback callback,
-            Millis timeout = Millis{0}) const;
-  void pushEvent(const Event& event, Callback callback, Millis timeout = Millis{0}) const;
+  void callAsync(const Request& request, Callback callback, Millis timeout = Millis{0}) const;
+  // 便利重载：载荷按**引用**收（不拷贝、也不构造临时 Request）；
+  // 只要求"调用期间 params 一直有效"—— 因为它在返回前就已经填进消息并发出去了。
+  void callAsync(std::string_view method, const Bytes& params, Callback callback,
+                 Millis timeout = Millis{0}) const;
+  // 就地填充版：载荷直接写进消息段（省掉用户那份 Bytes；大载荷才有意义）。
+  void callAsync(std::string_view method, std::size_t paramsSize, PayloadFiller filler,
+                 Callback callback, Millis timeout = Millis{0}) const;
+  // 结果借用视图版：大响应不再拷进 Outcome::response::result（见文件里的 ByteView 说明）。
+  void callViewAsync(const Request& request, ResultViewCallback callback,
+                     Millis timeout = Millis{0}) const;
+  void callViewAsync(std::string_view method, const Bytes& params, ResultViewCallback callback,
+                     Millis timeout = Millis{0}) const;
+  void pushEventAsync(const Event& event, Callback callback,
+                      Millis timeout = Millis{0}) const;
   // 连续发一批事件（协议里的 events 流）：逐条发、每条等背压窗口，最后再发一次 ping
   // 当屏障 —— 回调被调用时，对端确实已经处理完全部事件。
-  void sendEvents(std::vector<Event> events, Callback callback,
-                  Millis timeout = Millis{0}) const;
+  void sendEventsAsync(std::vector<Event> events, Callback callback,
+                       Millis timeout = Millis{0}) const;
 
 private:
   friend class Client;
@@ -457,7 +561,20 @@ public:
   // 会自己推进事件循环直到本次调用完成（所以本线程此时不能同时跑 run()）。
   // timeout 为 0 表示用 Options::callTimeout。
   Response call(const Request& request, Millis timeout = Millis{0});
-  Response call(std::string_view method, Bytes params = {}, Millis timeout = Millis{0});
+  // 便利重载：载荷按**引用**收（不拷贝、也不构造临时 Request）。
+  Response call(std::string_view method, const Bytes& params = {}, Millis timeout = Millis{0});
+  // 就地填充版：载荷直接写进消息段（省掉用户那份 Bytes；大载荷才有意义）。
+  // 例：client.call("blob", n, [&](std::uint8_t* p, std::size_t size) { fill(p, size); });
+  Response call(std::string_view method, std::size_t paramsSize, PayloadFiller filler,
+                Millis timeout = Millis{0});
+  // 结果借用视图版（同步）：回调在 callView() **返回之前**执行，view 只在回调期间有效。
+  // 这是**唯一不抛异常的阻塞接口**：载荷和结果状态都通过回调给出（与异步版一致）——
+  // 失败时回调拿到 `!outcome.delivered()` + 空 view，而不是抛 TimeoutError/TransportError。
+  // 回调是"恰好一次"，所以这里没有返回值（也没有可返回的东西）。
+  void callView(const Request& request, ResultViewCallback callback,
+                Millis timeout = Millis{0});
+  void callView(std::string_view method, const Bytes& params, ResultViewCallback callback,
+                Millis timeout = Millis{0});
   Status pushEvent(const Event& event, Millis timeout = Millis{0});
   // 一批事件的流式发送。失败抛异常；注意超时可能意味着"前若干条已经发出去了"
   // （屏障 ping 没回来 = 无法确认整批落地）。
@@ -466,6 +583,8 @@ public:
 
   // ---- 异步接口：任何地方都能用（包括回调里），结果走 Callback ----
   void callAsync(const Request& request, Callback callback);
+  // 结果借用视图版（异步）：回调在事件循环里执行，view 只在回调期间有效。
+  void callViewAsync(const Request& request, ResultViewCallback callback);
   void pushEventAsync(const Event& event, Callback callback);
 
   // ---- 连接状态 ----
