@@ -28,6 +28,9 @@ public:
     //! Get the option: no delay
     bool option_no_delay() const noexcept;
 
+    void setup_keep_alive(bool enable) noexcept;
+    void setup_no_delay(bool enable) noexcept;
+
     bool connect_async();
     bool disconnect_async();
     bool reconnect_async();
