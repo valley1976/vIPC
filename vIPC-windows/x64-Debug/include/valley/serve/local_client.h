@@ -4,6 +4,8 @@
 #include <string>
 #include <system_error>
 
+#include "valley/base/lang/any.h"
+
 #include "export.h"
 #include "event_loop.h"
 
@@ -22,6 +24,8 @@ public:
 
     const std::string& path() const noexcept;
 
+    base::Any& user_data() noexcept;
+
     //! Get the option: keep alive
     bool option_keep_alive() const noexcept;
 
@@ -31,6 +35,7 @@ public:
     bool disconnect_async();
     bool reconnect_async();
 
+    // copy buffer then send async
     bool send_async(const void* buffer, size_t size);
 
     struct Handler
@@ -45,7 +50,7 @@ public:
         std::function<void(const std::error_code&)> on_error;
     };
 
-    void set_handler(std::unique_ptr<Handler>& handler);
+    bool set_handler(std::unique_ptr<Handler>&& handler);
 
 private:
     std::shared_ptr<internal::Local_client> impl_;

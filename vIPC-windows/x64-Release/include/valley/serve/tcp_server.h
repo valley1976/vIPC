@@ -4,6 +4,8 @@
 #include <string>
 #include <system_error>
 
+#include "valley/base/lang/any.h"
+
 #include "event_loop.h"
 
 namespace valley {
@@ -61,11 +63,13 @@ public:
         std::function<void(Session, const std::error_code&)> on_error;
 
         static uint64_t get_id(Session s);
+        static base::Any& get_user_data(Session s);
+        // copy buffer then send async
         static bool send_async(Session s, const void* buffer, size_t size);
         static bool disconnect_async(Session s);
     };
 
-    void set_handler(std::unique_ptr<Handler>& h);
+    bool set_handler(std::unique_ptr<Handler>&& h);
 
     std::shared_ptr<internal::Tcp_server> get_impl() { return impl_; }
 
