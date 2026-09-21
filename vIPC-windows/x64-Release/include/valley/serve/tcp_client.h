@@ -42,8 +42,8 @@ public:
         std::function<void()> on_connected;
         std::function<void()> on_disconnected;
 
-        std::function<void(const void*, size_t, size_t&)> on_received;
-        std::function<void(size_t, size_t)> on_sent;
+        std::function<void(const void*/*buffer*/, size_t/*size*/, size_t&/*consumed, default is same size*/)> on_received;
+        std::function<void(size_t/*sent*/, size_t/*pending*/)> on_sent;
         std::function<void()> on_empty;
 
         std::function<void(const std::error_code&)> on_error;

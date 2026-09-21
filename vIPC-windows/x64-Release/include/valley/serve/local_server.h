@@ -10,17 +10,15 @@ namespace valley {
 namespace serve {
 
 namespace internal {
-class Tcp_server;
+class Local_server;
 }
 
-class LIBVALLEY_SERVE_EXPORT Tcp_server
+class LIBVALLEY_SERVE_EXPORT Local_server
 {
 public:
-    Tcp_server(Event_loop& event_loop, int port, bool is_ipv4 = true);
-    Tcp_server(Event_loop& event_loop, const std::string& address, int port);
+    Local_server(Event_loop& event_loop, const std::string& address);
 
-    const std::string& address() const noexcept;
-    int port() const noexcept;
+    const std::string& path() const noexcept;
 
     uint64_t connected_sessions() const noexcept;
 
@@ -67,10 +65,10 @@ public:
 
     void set_handler(std::unique_ptr<Handler>& h);
 
-    std::shared_ptr<internal::Tcp_server> get_impl() { return impl_; }
+    std::shared_ptr<internal::Local_server> get_impl() { return impl_; }
 
 private:
-    std::shared_ptr<internal::Tcp_server> impl_;
+    std::shared_ptr<internal::Local_server> impl_;
 };
 
 }

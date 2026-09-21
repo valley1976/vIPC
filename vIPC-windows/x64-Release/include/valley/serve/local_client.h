@@ -11,25 +11,21 @@ namespace valley {
 namespace serve {
 
 namespace internal {
-class Tcp_client;
+class Local_client;
 }
 
 
-class LIBVALLEY_SERVE_EXPORT Tcp_client
+class LIBVALLEY_SERVE_EXPORT Local_client
 {
 public:
-    Tcp_client(Event_loop& event_loop, const std::string& address, int port);
+    Local_client(Event_loop& event_loop, const std::string& address);
 
-    const std::string& address() const noexcept;
-    int port() const noexcept;
+    const std::string& path() const noexcept;
 
     //! Get the option: keep alive
     bool option_keep_alive() const noexcept;
-    //! Get the option: no delay
-    bool option_no_delay() const noexcept;
 
     void setup_keep_alive(bool enable) noexcept;
-    void setup_no_delay(bool enable) noexcept;
 
     bool connect_async();
     bool disconnect_async();
@@ -52,7 +48,7 @@ public:
     void set_handler(std::unique_ptr<Handler>& handler);
 
 private:
-    std::shared_ptr<internal::Tcp_client> impl_;
+    std::shared_ptr<internal::Local_client> impl_;
 };
 
 }
