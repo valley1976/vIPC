@@ -26,8 +26,6 @@ public:
     void dispatch(std::function<void()> fn);
     void post(std::function<void()> fn);
 
-    internal::Event_loop& get_impl() { return *impl_; }
-
     struct Handler
     {
         std::function<void()> on_thread_initialize;
@@ -39,6 +37,15 @@ public:
     };
 
     bool set_handler(std::unique_ptr<Handler>& handler);
+
+private:
+    friend class Local_client;
+    friend class Local_server;
+    friend class Tcp_client;
+    friend class Tcp_server;
+    friend class Steady_timer;
+
+    internal::Event_loop& get_impl() { return *impl_; }
 
 private:
     std::unique_ptr<internal::Event_loop> impl_;

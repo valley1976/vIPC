@@ -13,6 +13,9 @@ namespace serve {
 
 namespace internal {
 class Local_server;
+
+template<typename Handler>
+class Local_session;
 }
 
 class LIBVALLEY_SERVE_EXPORT Local_server
@@ -24,10 +27,10 @@ public:
 
     uint64_t connected_sessions() const noexcept;
 
-    bool option_keep_alive() const noexcept;
-    bool option_no_delay() const noexcept ;
-    bool option_reuse_address() const noexcept;
-    bool option_reuse_port() const noexcept;
+    bool is_keep_alive() const noexcept;
+    bool is_no_delay() const noexcept ;
+    bool is_reuse_address() const noexcept;
+    bool is_reuse_port() const noexcept;
 
     //! Is the server started?
     bool is_started() const noexcept;
@@ -36,7 +39,7 @@ public:
     bool stop();
     bool restart();
 
-    bool multicast(const void* buffer, size_t size);
+    bool broadcast(const void* buffer, size_t size);
 
     bool disconnect_all();
 
@@ -47,28 +50,33 @@ public:
     void setup_reuse_address(bool enable) noexcept;
     void setup_reuse_port(bool enable) noexcept;
 
-    using Session = void*;
+    struct LIBVALLEY_SERVE_EXPORT Session
+    {
+        using session_type = internal::Local_session<internal::Local_server>;
+        using Ptr          = std::shared_ptr<session_type>;
+
+        static uint64_t get_id(const Ptr& ses);
+        static base::Any& get_user_data(const Ptr& ses);
+        // copy buffer then send async
+        static bool send_async(const Ptr& ses, const void* buffer, size_t size);
+        static bool disconnect_async(const Ptr& ses);
+    };
 
     struct LIBVALLEY_SERVE_EXPORT Handler
     {
-        std::function<void(Session)> on_connected;
-        std::function<void(Session)> on_disconnected;
+        std::function<void(const Session::Ptr&)> on_connected;
+        std::function<void(const Session::Ptr&)> on_disconnected;
 
-        std::function<void(Session, const void*/*buffer*/, size_t/*size*/, size_t&/*consumed, default is same size*/)> on_received;
-        std::function<void(Session, size_t/*sent*/, size_t/*pending*/)> on_sent;
-        std::function<void(Session)> on_empty;
+        std::function<void(const Session::Ptr&, const void*/*buffer*/, size_t/*size*/, size_t&/*consumed, default is same size*/)> on_received;
+        std::function<void(const Session::Ptr&, size_t/*sent*/, size_t/*pending*/)> on_sent;
+        std::function<void(const Session::Ptr&)> on_empty;
 
-        std::function<void(Session, const std::error_code&)> on_error;
-
-        static uint64_t get_id(Session s);
-        static base::Any& get_user_data(Session s);
-        // copy buffer then send async
-        static bool send_async(Session s, const void* buffer, size_t size);
-        static bool disconnect_async(Session s);
+        std::function<void(const Session::Ptr&, const std::error_code&)> on_error;
     };
 
     bool set_handler(std::unique_ptr<Handler>&& h);
 
+private:
     std::shared_ptr<internal::Local_server> get_impl() { return impl_; }
 
 private:
