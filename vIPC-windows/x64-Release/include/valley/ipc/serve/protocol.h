@@ -25,6 +25,24 @@ struct Protocol
     // vRPC
     static constexpr u32 kPROTOCOL_MAGIC = u32(u8('v')) | u32(u8('R')) << 8 | u32(u8('P')) << 16 | u32(u8('C')) << 24;
 
+
+    /*
+        magic  4
+        method_count 2
+        nitification_count 2
+        [ method_id 2, ...]
+        [ nitification 2, ...]
+    */
+
+    struct Handshake
+    {
+        u32 magic;
+        u16 method_count;
+        u16 notification_count;
+    };
+
+    static_assert(sizeof(Handshake) == 8, "Handshake size must be 8 bytes");
+
     // ------------------------------------------------------------------
 // payload 编码格式
 // ------------------------------------------------------------------

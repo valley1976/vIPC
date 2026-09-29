@@ -31,6 +31,7 @@ enum class Status : int32_t
     kMaxConcurrent = 20,
     kProtocol = 21,
     kHandlerError = 22,
+    kBusy = 23,
 
     kUser = 100,
 };

@@ -20,7 +20,7 @@ public:
 
     // 与线上布局严格一致，无 padding
     struct Header {
-        Protocol::u32 seq;
+        mutable Protocol::u32 seq;
         Protocol::u16 method;
         Protocol::u16 payload_len;
         Protocol::u32 status;
@@ -31,7 +31,7 @@ public:
     };
 
     static constexpr auto kFRAME_HEADER_SIZE = sizeof(Header);
-    static_assert(kFRAME_HEADER_SIZE == 16, "Frame_header size must match kFRAME_HEADER_SIZE");
+    static_assert(kFRAME_HEADER_SIZE == 16, "Frame_header size must be 16 bytes");
 
     static constexpr auto kMaxPayload = 64 * 1024 * 1024 - kFRAME_HEADER_SIZE;
 
@@ -71,7 +71,7 @@ public:
     template<typename T>
     T* make_notification(Protocol::u16 method_id, Protocol::u32 seq);
 
-    static const Header* parse_header(const void* buffer, size_t size);
+    static const Header* parse_frame(const void* buffer, size_t size, size_t& frame_size);
 
 private:
     using Bytes = std::vector<Byte, base::Aligned_allocator<Byte, 64>>;
@@ -227,10 +227,16 @@ inline T* Frame::make_notification(Protocol::u16 method_id, Protocol::u32 seq)
     return payload;
 }
 
-inline const Frame::Header* Frame::parse_header(const void* buffer, size_t size)
+inline const Frame::Header* Frame::parse_frame(const void* buffer, size_t size, size_t& frame_size)
 {
     if (size >= kFRAME_HEADER_SIZE)
-        return reinterpret_cast<const Header*>(buffer);
+    { 
+        auto* h = reinterpret_cast<const Header*>(buffer);
+        frame_size = Frame::kFRAME_HEADER_SIZE + h->payload_len;
+
+        if (size >= frame_size)
+            return h;
+    }
 
     return nullptr;
 }

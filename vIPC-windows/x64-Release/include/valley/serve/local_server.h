@@ -18,10 +18,37 @@ template<typename Handler>
 class Local_session;
 }
 
+struct LIBVALLEY_SERVE_EXPORT Local_session
+{
+    using session_type = internal::Local_session<internal::Local_server>;
+    using Ptr = std::shared_ptr<session_type>;
+
+    static uint64_t get_id(const Ptr& ses);
+    static base::Any& get_user_data(const Ptr& ses);
+    // copy buffer then send async
+    static bool send_async(const Ptr& ses, const void* buffer, size_t size);
+    static bool disconnect_async(const Ptr& ses);
+};
+
+struct LIBVALLEY_SERVE_EXPORT Local_session_handler
+{
+    std::function<void(const Local_session::Ptr&)> on_connected;
+    std::function<void(const Local_session::Ptr&)> on_disconnected;
+
+    std::function<void(const Local_session::Ptr&, const void*/*buffer*/, size_t/*size*/, size_t&/*consumed, default is same size*/)> on_received;
+    std::function<void(const Local_session::Ptr&, size_t/*sent*/, size_t/*pending*/)> on_sent;
+    std::function<void(const Local_session::Ptr&)> on_empty;
+
+    std::function<void(const Local_session::Ptr&, const std::error_code&)> on_error;
+};
+
 class LIBVALLEY_SERVE_EXPORT Local_server
 {
 public:
     Local_server(Event_loop& event_loop, const std::string& address);
+
+    Local_server(const Local_server&) = delete;
+    Local_server& operator=(const Local_server&) = delete;
 
     const std::string& path() const noexcept;
 
@@ -43,38 +70,14 @@ public:
 
     bool disconnect_all();
 
-    //std::shared_ptr<session_type> find_session(uint64_t id);
+    Local_session::Ptr find_session(uint64_t id);
 
     void setup_keep_alive(bool enable) noexcept;
     void setup_no_delay(bool enable) noexcept;
     void setup_reuse_address(bool enable) noexcept;
     void setup_reuse_port(bool enable) noexcept;
 
-    struct LIBVALLEY_SERVE_EXPORT Session
-    {
-        using session_type = internal::Local_session<internal::Local_server>;
-        using Ptr          = std::shared_ptr<session_type>;
-
-        static uint64_t get_id(const Ptr& ses);
-        static base::Any& get_user_data(const Ptr& ses);
-        // copy buffer then send async
-        static bool send_async(const Ptr& ses, const void* buffer, size_t size);
-        static bool disconnect_async(const Ptr& ses);
-    };
-
-    struct LIBVALLEY_SERVE_EXPORT Handler
-    {
-        std::function<void(const Session::Ptr&)> on_connected;
-        std::function<void(const Session::Ptr&)> on_disconnected;
-
-        std::function<void(const Session::Ptr&, const void*/*buffer*/, size_t/*size*/, size_t&/*consumed, default is same size*/)> on_received;
-        std::function<void(const Session::Ptr&, size_t/*sent*/, size_t/*pending*/)> on_sent;
-        std::function<void(const Session::Ptr&)> on_empty;
-
-        std::function<void(const Session::Ptr&, const std::error_code&)> on_error;
-    };
-
-    bool set_handler(std::unique_ptr<Handler>&& h);
+    bool set_session_handler(std::unique_ptr<Local_session_handler>&& h);
 
 private:
     std::shared_ptr<internal::Local_server> get_impl() { return impl_; }

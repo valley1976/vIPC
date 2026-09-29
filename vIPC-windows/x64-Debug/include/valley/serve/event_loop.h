@@ -38,13 +38,6 @@ public:
 
     bool set_handler(std::unique_ptr<Handler>& handler);
 
-private:
-    friend class Local_client;
-    friend class Local_server;
-    friend class Tcp_client;
-    friend class Tcp_server;
-    friend class Steady_timer;
-
     internal::Event_loop& get_impl() { return *impl_; }
 
 private:
