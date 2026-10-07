@@ -3,6 +3,8 @@
 #include <string>
 #include <system_error>
 
+#include "valley/base/export.h"
+
 namespace valley {
 namespace base {
 
@@ -36,7 +38,7 @@ enum class Status : int32_t
     kUser = 100,
 };
 
-std::error_code make_error_code(Status);
+std::error_code LIBVALLEY_BASE_EXPORT make_error_code(Status);
 
 inline const char* status_to_string(Status status)
 {
@@ -87,6 +89,8 @@ inline const char* status_to_string(Status status)
         return "PROTOCOL";
     case Status::kHandlerError:
         return "HANDLER_ERROR";
+    case Status::kBusy:
+        return "BUSY";
     default:
         return "UNKNOWN_STATUS";
     }

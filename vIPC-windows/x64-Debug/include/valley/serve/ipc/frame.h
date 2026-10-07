@@ -57,16 +57,34 @@ protected:
 };
 
 template<typename T>
-T* get(Frame& frame)
+inline constexpr bool is_memcpy_safe()
 {
-    constexpr bool is_memcpy_safe =
+    constexpr bool result =
         std::is_trivially_copyable<T>::value
         && std::is_standard_layout<T>::value;
 
-    static_assert(is_memcpy_safe, "T must be trivially copyable and standard layout");
+    static_assert(result, "T must be trivially copyable and standard layout");
     static_assert(16 % alignof(T) == 0, "T alignment incompatible with frame header size");
 
+    return result;
+}
+
+template<typename T>
+inline T* get(Frame& frame)
+{
+    static_assert(is_memcpy_safe<T>(), "bat T");
+    assert(sizeof(T) == frame.payload_size());
+
     return reinterpret_cast<T*>(frame.payload());
+}
+
+template<typename T>
+inline const T* get(const Frame& frame)
+{
+    static_assert(is_memcpy_safe<T>(), "bat T");
+    assert(sizeof(T) == frame.payload_size());
+
+    return reinterpret_cast<const T*>(frame.payload());
 }
 
 // inline
@@ -89,15 +107,23 @@ inline bool Frame::empty() const
 
 //--------------------------------------------------
 
-class Request : public Frame
+class LIBVALLEY_SERVE_EXPORT Request : public Frame
 {
 public:
     Request() = default;
 
-    void make_request(u16 method, u16 payload_size);
+    void* make_request(u16 method, u16 payload_size);
+
+    template<typename T>
+    T* make_request(u16 method)
+    {
+        static_assert(is_memcpy_safe<T>(), "badt T");
+
+        return reinterpret_cast<T*>(make_request(method, sizeof(T)));
+    }
 };
 
-class Response : public Frame
+class LIBVALLEY_SERVE_EXPORT Response : public Frame
 {
 public:
     Response() = default;
@@ -105,29 +131,32 @@ public:
     u32 status() const;
 
     void make_response(u16 method, u32 sequence, u32 status);
-    void make_response(u16 method, u32 sequence, u32 status, u16 payload_size);
+    void* make_response(u16 method, u32 sequence, u32 status, u16 payload_size);
+
+    template<typename T>
+    T* make_response(u16 method, u32 sequence, u32 status)
+    {
+        static_assert(is_memcpy_safe<T>(), "badt T");
+
+        return reinterpret_cast<T*>(make_response(method, sequence, status, sizeof(T)));
+    }
 };
 
-class Notification : public Frame
+class LIBVALLEY_SERVE_EXPORT Notification : public Frame
 {
 public:
     Notification() = default;
     
-    void make_notification(u16 method, u16 payload_size);
+    void* make_notification(u16 method, u16 payload_size);
+
+    template<typename T>
+    T* make_notification(u16 method)
+    {
+        static_assert(is_memcpy_safe<T>(), "badt T");
+
+        return reinterpret_cast<T*>(make_notification(method, sizeof(T)));
+    }
 };
-
-template<typename T>
-const T* cast_as(const Frame& frame)
-{
-    constexpr bool is_memcpy_safe =
-        std::is_trivially_copyable<T>::value
-        && std::is_standard_layout<T>::value;
-
-    static_assert(is_memcpy_safe, "T must be trivially copyable and standard layout");
-    static_assert(16 % alignof(T) == 0, "T alignment incompatible with frame header size");
-
-    return reinterpret_cast<const T*>(frame.payload());
-}
 
 }
 }

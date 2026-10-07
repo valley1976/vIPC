@@ -22,35 +22,56 @@ class Client;
 class LIBVALLEY_SERVE_EXPORT Ipc_client
 {
 public:
-    using Method_handler = std::function<void(uint16_t/*method*/, uint32_t/*sequence*/, const void*/*payload*/, uint16_t/*payload_size*/, ipc::Response&/*response*/) >;
-    using Notification_handler = std::function<void(uint16_t/*method*/, uint32_t/*sequence*/, const void*/*payload*/, uint16_t/*payload_size*/)>;
-    using On_response = std::function<void(uint16_t/*method*/, uint32_t/*sequence*/, uint32_t/*status*/, const void*/*payload*/, uint16_t/*payload_size*/)>;
+    using On_connected          = std::function<void()>;
+    using On_disconnected       = std::function<void()>;
+
+    using Method_handler        = std::function<void(ipc::Method, ipc::Sequence, ipc::Payload, ipc::Payload_size, ipc::Response&) >;
+    using Notification_handler  = std::function<void(ipc::Method, ipc::Sequence, ipc::Payload, ipc::Payload_size)>;
+    using On_response           = std::function<void(ipc::Method, ipc::Sequence, ipc::Status, ipc::Payload, ipc::Payload_size)>;
 
 public:
     Ipc_client(Event_loop& event_loop, const std::string& address);
+    ~Ipc_client() noexcept = default;
+
+    Ipc_client(const Ipc_client&) = delete;
+    Ipc_client& operator=(const Ipc_client&) = delete;
+
+    Ipc_client(Ipc_client&&) noexcept;
+    Ipc_client& operator=(Ipc_client&&) noexcept;
 
     const std::string& path() const noexcept;
 
     base::Any& user_data() noexcept;
 
-    //! Get the option: keep alive
-    bool option_keep_alive() const noexcept;
+    bool set_method_max_alive_time(ipc::Ms time);
 
-    void setup_keep_alive(bool enable) noexcept;
+    bool set_on_connected(const On_connected& h);
+    bool set_on_disconnected(const On_disconnected& h);
 
     bool connect_async();
     bool disconnect_async();
     bool reconnect_async();
 
-    bool register_method(uint16_t method_id, Method_handler h);
-    bool register_notification(uint16_t method_id, Notification_handler h);
+    bool register_method(uint16_t method_id, const Method_handler& h);
+    bool register_notification(uint16_t method_id, const Notification_handler& h);
 
-    bool request_async(ipc::Request& r, const On_response& h, ipc::Busy_policy policy);
-    bool notify_async(ipc::Notification& n);
+    std::error_code request_async(const ipc::Request& r, const On_response& h, const ipc::Busy_option& option = ipc::Busy_policy::kRejectIfBusy);
+    std::error_code notify_async(const ipc::Notification& n);
 
 private:
     std::shared_ptr<ipc::Client> impl_;
 };
+
+inline Ipc_client::Ipc_client(Ipc_client&& orig) noexcept : impl_(std::move(orig.impl_))
+{}
+
+inline Ipc_client& Ipc_client::operator=(Ipc_client&& orig) noexcept
+{
+    if (this != &orig)
+        impl_ = std::move(orig.impl_);
+    
+    return *this;
+}
 
 }
 }
