@@ -24,7 +24,7 @@ class Stream;
 using session_type  = ipc::Stream<ipc::Server>;
 using Session_ptr   = std::shared_ptr<session_type>;
 
-using On_response   = std::function<void(const Session_ptr&, ipc::Method, ipc::Sequence, ipc::Status, const ipc::Payload, ipc::Payload_size)>;
+using On_response   = std::function<void(const Session_ptr&, const Response_view)>;
 
 uint64_t get_id(const Session_ptr& ses);
 base::Any& get_user_data(const Session_ptr& ses);
@@ -40,10 +40,11 @@ public:
     using On_connected          = std::function<void(const ipc::Session_ptr&)>;
     using On_disconnected       = std::function<void(const ipc::Session_ptr&)>;
 
-    using Method_handler        = std::function<void(const ipc::Session_ptr&, ipc::Method, ipc::Sequence, ipc::Payload, ipc::Payload_size, ipc::Response&)>;
-    using Notification_handler  = std::function<void(const ipc::Session_ptr&, ipc::Method, ipc::Sequence, ipc::Payload, ipc::Payload_size)>;
+    using Method_handler        = std::function<void(const ipc::Session_ptr&, const ipc::Request_view, ipc::Response&)>;
+    using Notification_handler  = std::function<void(const ipc::Session_ptr&, const ipc::Notification_view)>;
 
 public:
+    explicit Ipc_server(const std::string& address);
     Ipc_server(Event_loop& event_loop, const std::string& address);
     ~Ipc_server() noexcept = default;
 

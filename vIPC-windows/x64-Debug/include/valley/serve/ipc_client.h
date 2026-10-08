@@ -25,11 +25,12 @@ public:
     using On_connected          = std::function<void()>;
     using On_disconnected       = std::function<void()>;
 
-    using Method_handler        = std::function<void(ipc::Method, ipc::Sequence, ipc::Payload, ipc::Payload_size, ipc::Response&) >;
-    using Notification_handler  = std::function<void(ipc::Method, ipc::Sequence, ipc::Payload, ipc::Payload_size)>;
-    using On_response           = std::function<void(ipc::Method, ipc::Sequence, ipc::Status, ipc::Payload, ipc::Payload_size)>;
+    using Method_handler        = std::function<void(const ipc::Request_view, ipc::Response&) >;
+    using Notification_handler  = std::function<void(const ipc::Notification_view)>;
+    using On_response           = std::function<void(const ipc::Response_view)>;
 
 public:
+    explicit Ipc_client(const std::string& address);
     Ipc_client(Event_loop& event_loop, const std::string& address);
     ~Ipc_client() noexcept = default;
 

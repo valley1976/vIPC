@@ -69,24 +69,6 @@ inline constexpr bool is_memcpy_safe()
     return result;
 }
 
-template<typename T>
-inline T* get(Frame& frame)
-{
-    static_assert(is_memcpy_safe<T>(), "bat T");
-    assert(sizeof(T) == frame.payload_size());
-
-    return reinterpret_cast<T*>(frame.payload());
-}
-
-template<typename T>
-inline const T* get(const Frame& frame)
-{
-    static_assert(is_memcpy_safe<T>(), "bat T");
-    assert(sizeof(T) == frame.payload_size());
-
-    return reinterpret_cast<const T*>(frame.payload());
-}
-
 // inline
 
 inline Frame::Frame(Frame&& orig) noexcept : bytes_(std::move(orig.bytes_))
@@ -114,13 +96,36 @@ public:
 
     void* make_request(u16 method, u16 payload_size);
 
-    template<typename T>
-    T* make_request(u16 method)
+    template<typename T, typename ...Args>
+    T& emplace(u16 method, Args&& ... args)
     {
-        static_assert(is_memcpy_safe<T>(), "badt T");
-
-        return reinterpret_cast<T*>(make_request(method, sizeof(T)));
+        static_assert(is_memcpy_safe<T>(), "bad T");
+        return *(new(make_request(method, sizeof(T)))T(std::forward<Args>(args)...));
     }
+};
+
+class LIBVALLEY_SERVE_EXPORT Request_view
+{
+public:
+    explicit Request_view(const Frame_header* header);
+
+    u16 method() const;
+    u32 sequence() const;
+
+    const void* payload() const;
+    u16 payload_size() const;
+
+    template<typename T>
+    const T* cast()
+    {
+        static_assert(is_memcpy_safe<T>(), "bad T");
+        assert(sizeof(T) == payload_size());
+
+        return reinterpret_cast<const T*>(payload());
+    }
+
+private:
+    const Frame_header* header_;
 };
 
 class LIBVALLEY_SERVE_EXPORT Response : public Frame
@@ -133,13 +138,38 @@ public:
     void make_response(u16 method, u32 sequence, u32 status);
     void* make_response(u16 method, u32 sequence, u32 status, u16 payload_size);
 
-    template<typename T>
-    T* make_response(u16 method, u32 sequence, u32 status)
+    template<typename T, typename ... Args>
+    T& emplace(u16 method, u32 sequence, u32 status, Args&& ... args)
     {
-        static_assert(is_memcpy_safe<T>(), "badt T");
-
-        return reinterpret_cast<T*>(make_response(method, sequence, status, sizeof(T)));
+        static_assert(is_memcpy_safe<T>(), "bad T");
+        return *(new (make_response(method, sequence, status, sizeof(T)))T(std::forward<Args>(args)...));
     }
+};
+
+class LIBVALLEY_SERVE_EXPORT Response_view
+{
+public:
+    explicit Response_view(const Frame_header* header);
+
+    u16 method() const;
+    u32 sequence() const;
+
+    u32 status() const;
+
+    const void* payload() const;
+    u16 payload_size() const;
+
+    template<typename T>
+    const T* cast()
+    {
+        static_assert(is_memcpy_safe<T>(), "bad T");
+        assert(sizeof(T) == payload_size());
+
+        return reinterpret_cast<const T*>(payload());
+    }
+
+private:
+    const Frame_header* header_;
 };
 
 class LIBVALLEY_SERVE_EXPORT Notification : public Frame
@@ -149,13 +179,36 @@ public:
     
     void* make_notification(u16 method, u16 payload_size);
 
-    template<typename T>
-    T* make_notification(u16 method)
+    template<typename T, typename ... Args>
+    T& emplace(u16 method, Args&& ... args)
     {
-        static_assert(is_memcpy_safe<T>(), "badt T");
-
-        return reinterpret_cast<T*>(make_notification(method, sizeof(T)));
+        static_assert(is_memcpy_safe<T>(), "bad T");
+        return *(new (make_notification(method, sizeof(T)))T(std::forward<Args>(args)...));
     }
+};
+
+class LIBVALLEY_SERVE_EXPORT Notification_view
+{
+public:
+    explicit Notification_view(const Frame_header* header);
+
+    u16 method() const;
+    u32 sequence() const;
+
+    const void* payload() const;
+    u16 payload_size() const;
+
+    template<typename T>
+    const T* cast()
+    {
+        static_assert(is_memcpy_safe<T>(), "bad T");
+        assert(sizeof(T) == payload_size());
+
+        return reinterpret_cast<const T*>(payload());
+    }
+
+private:
+    const Frame_header* header_;
 };
 
 }
