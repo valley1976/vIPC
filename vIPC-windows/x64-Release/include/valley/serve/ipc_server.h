@@ -58,8 +58,6 @@ public:
 
     uint64_t connected_sessions() const noexcept;
 
-    bool set_method_max_alive_time(ipc::Ms time);
-
     bool set_on_connected(const On_connected& h);
     bool set_on_disconnected(const On_disconnected& h);
     
