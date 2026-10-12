@@ -45,21 +45,20 @@ enum class Flags : u8
 
 enum class Busy_policy {
     kRejectIfBusy,
-    kCancelAndReplace,
-    kCancelAndReplaceIfExpireFor
+    kCancelAndReplace
 };
 
-struct Busy_option 
+struct Busy_option
 {
     Busy_policy policy;
-    Ms expire_for;
+    Ms expire_after{ Ms::zero() };
 
     Busy_option(Busy_policy p) : policy(p),
-        expire_for()
+        expire_after()
     {}
 
-    Busy_option(Busy_policy p, const Ms time) : policy(p),
-        expire_for(time)
+    Busy_option(Busy_policy p, Ms after) : policy(p),
+        expire_after(after)
     {}
 };
 

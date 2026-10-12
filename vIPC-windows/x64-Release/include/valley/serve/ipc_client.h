@@ -56,6 +56,7 @@ public:
     bool register_method(uint16_t method_id, const Method_handler& h);
     bool register_notification(uint16_t method_id, const Notification_handler& h);
 
+    std::error_code request(const ipc::Request& r, const On_response& h, const ipc::Ms& timeout = ipc::Ms{200});
     std::error_code request_async(const ipc::Request& r, const On_response& h, const ipc::Busy_option& option = ipc::Busy_policy::kRejectIfBusy);
     std::error_code notify_async(const ipc::Notification& n);
 
