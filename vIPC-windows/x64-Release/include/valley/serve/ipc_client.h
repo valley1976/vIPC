@@ -32,7 +32,7 @@ public:
 public:
     explicit Ipc_client(const std::string& address);
     Ipc_client(Event_loop& event_loop, const std::string& address);
-    ~Ipc_client() noexcept = default;
+    ~Ipc_client();
 
     Ipc_client(const Ipc_client&) = delete;
     Ipc_client& operator=(const Ipc_client&) = delete;
@@ -42,17 +42,16 @@ public:
 
     const std::string& path() const noexcept;
 
-    base::Any& user_data() noexcept;
+    //base::Any& user_data() noexcept;
 
     bool set_on_connected(const On_connected& h);
     bool set_on_disconnected(const On_disconnected& h);
 
-    bool connect_async();
-    bool disconnect_async();
-    bool reconnect_async();
-
     bool register_method(uint16_t method_id, const Method_handler& h);
     bool register_notification(uint16_t method_id, const Notification_handler& h);
+
+    bool start();
+    bool stop();
 
     std::error_code request(const ipc::Request& r, const On_response& h, const ipc::Ms& timeout = ipc::Ms{200});
     std::error_code request_async(const ipc::Request& r, const On_response& h, const ipc::Busy_option& option = ipc::Busy_policy::kRejectIfBusy);

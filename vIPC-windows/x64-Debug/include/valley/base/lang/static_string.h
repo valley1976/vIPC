@@ -28,7 +28,7 @@ public:
         auto len = std::strlen(str);
         if (len > N-1)
             len = N-1;
-        std::strncpy(data_, str, len);
+        std::memcpy(data_, str, len);
         data_[len] = '\0';
     }
 

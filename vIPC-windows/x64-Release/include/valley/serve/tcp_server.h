@@ -27,7 +27,7 @@ struct LIBVALLEY_SERVE_EXPORT Tcp_session
     static base::Any& get_user_data(const Ptr& ses);
     // copy buffer then send async
     static bool send_async(const Ptr& ses, const void* buffer, size_t size);
-    static bool disconnect_async(const Ptr& ses);
+    static void disconnect_async(const Ptr& ses);
 };
 
 struct LIBVALLEY_SERVE_EXPORT Tcp_session_handler
@@ -66,7 +66,6 @@ public:
 
     bool start();
     bool stop();
-    bool restart();
 
     bool broadcast(const void* buffer, size_t size);
 
