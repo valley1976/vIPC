@@ -20,7 +20,7 @@ using ChannelId = std::uint16_t;
 struct McapWriterOptions;
 }  // namespace mcap
 
-namespace valley {
+namespace storage {
 
 // MCAP 写入器：封装 mcap::McapWriter，并负责 schema/channel 注册。
 class LIBVALLEY_STORAGE_EXPORT Mcap_writer
@@ -81,4 +81,4 @@ private:
     std::unique_ptr<Impl> impl_;
 };
 
-}  // namespace valley
+}  // namespace storage

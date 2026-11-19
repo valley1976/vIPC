@@ -41,6 +41,8 @@ struct Attach_response
     std::uint64_t payload_size = 0;
     char shm_name[128]{};
     char region_name[32]{};
+    std::uint32_t subscriber_index = 0;
+    std::uint32_t reserved2 = 0;
 };
 
 struct Topic_stats
@@ -79,6 +81,8 @@ struct Stats_response
     std::uint64_t attach_total = 0;
     std::uint64_t attach_fail = 0;
     std::uint64_t recovery_total = 0;
+    char metrics_shm[128]{};
+    char metrics_region[32]{};
     Topic_stats topics[MAX_STATS_TOPICS]{};
 };
 

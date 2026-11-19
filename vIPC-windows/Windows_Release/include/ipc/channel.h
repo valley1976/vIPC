@@ -3,6 +3,7 @@
 // 运行时容量版单生产者/多订阅者通道：公开 API。
 // 实现与 References 布局在 ipc/src/ 下，不对外暴露。
 
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -31,8 +32,26 @@ public:
         std::uint64_t committed = 0;
         std::uint64_t oldest_position = 0;
         std::uint64_t last_publish_time_ns = 0;
+        std::uint64_t publish_failures = 0;
         std::size_t capacity = 0;
         std::size_t payload_size = 0;
+    };
+
+    struct Subscriber_stats {
+        std::uint64_t cursor = 0;
+        std::uint64_t dropped = 0;
+        std::uint64_t owner_token = 0;
+        std::uint64_t generation = 0;
+        std::uint32_t state = 0;
+    };
+
+    struct Subscriber_metrics_snapshot {
+        std::uint64_t heartbeat = 0;
+        std::uint64_t last_seen_ns = 0;
+        std::uint64_t pid = 0;
+        std::uint64_t owner_token = 0;
+        std::uint32_t generation = 0;
+        std::uint32_t flags = 0;
     };
 
     Channel();
@@ -68,12 +87,14 @@ public:
         if (!valid_config(config))
             return 0;
         // 与 ipc/src/channel_impl.h 的 Header/Subscriber_state/Slot 布局一致
-        constexpr std::size_t HEADER_SIZE = 10 * CACHE_LINE;
+        constexpr std::size_t HEADER_SIZE = 11 * CACHE_LINE;
         constexpr std::size_t SUBSCRIBER_SIZE = CACHE_LINE;
+        constexpr std::size_t SUBSCRIBER_METRICS_SIZE = CACHE_LINE;
         constexpr std::size_t SLOT_SIZE = CACHE_LINE;
         const std::size_t chunk_stride =
             (config.payload_size + SLOT_ALIGN - 1) & ~(SLOT_ALIGN - 1);
         return HEADER_SIZE + config.subscriber_size * SUBSCRIBER_SIZE +
+               config.subscriber_size * SUBSCRIBER_METRICS_SIZE +
                config.ring_size * (SLOT_SIZE + chunk_stride);
     }
 
@@ -119,6 +140,18 @@ public:
     [[nodiscard]] std::size_t subscriber_size() const noexcept;
     [[nodiscard]] std::size_t payload_size() const noexcept;
     [[nodiscard]] std::uint64_t oldest_position() const noexcept;
+    [[nodiscard]] std::uint64_t oldest_time_ns() const noexcept;
+    [[nodiscard]] std::uint64_t publish_failures() const noexcept;
+
+    // 预分配的 subscriber 观测接口；index 来自 Attach_response。
+    [[nodiscard]] std::optional<Subscriber_stats> subscriber_stats(
+        std::size_t index) const noexcept;
+    [[nodiscard]] std::optional<Subscriber_metrics_snapshot> subscriber_metrics(
+        std::size_t index) const noexcept;
+    void update_subscriber_metrics(std::size_t index, std::uint64_t owner_token,
+                                   std::uint64_t pid,
+                                   std::uint64_t last_seen_ns) noexcept;
+
     // 返回第一个 publish_time >= time_ns 的逻辑位置；过旧返回最旧可用位置。
     [[nodiscard]] std::optional<std::uint64_t> position_at_time(
         std::uint64_t time_ns) const noexcept;
@@ -188,6 +221,8 @@ public:
     [[nodiscard]] std::size_t capacity() const noexcept;
     [[nodiscard]] std::size_t payload_size() const noexcept;
     [[nodiscard]] std::uint64_t oldest_position() const noexcept;
+    [[nodiscard]] std::uint64_t oldest_time_ns() const noexcept;
+    [[nodiscard]] std::uint64_t publish_failures() const noexcept;
     [[nodiscard]] std::optional<std::uint64_t> position_at_time(
         std::uint64_t time_ns) const noexcept;
     [[nodiscard]] bool seek(std::uint64_t position) noexcept;

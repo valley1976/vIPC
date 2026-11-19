@@ -29,6 +29,7 @@ find_dependency(Threads)
 find_dependency(nlohmann_json)
 find_dependency(ipc)
 find_dependency(storage_mcap)
+find_dependency(shm)
 
 include("${CMAKE_CURRENT_LIST_DIR}/dataTargets.cmake")
 

@@ -4,7 +4,6 @@
 
 #include "data/export.h"
 
-namespace valley {
 namespace data {
 
 // 预留的触发接收端；当前不依赖 serve，保留 pimpl 以便后续接入。
@@ -23,4 +22,3 @@ private:
 };
 
 }  // namespace data
-}  // namespace valley

@@ -10,7 +10,6 @@
 #include "data/export.h"
 #include "data/types.h"
 
-namespace valley {
 namespace data {
 
 // 触发事件：描述一次录制窗口及其关联文件。
@@ -27,7 +26,11 @@ public:
     const Time_point end_time;
 
     std::uint64_t sequence = 0;
+    // Recorder 级 Trigger 序号；多 Bundle 共用一个 group_sequence。
+    std::uint64_t group_sequence = 0;
     std::vector<std::string> files;
+    std::string manifest_file;
+    std::string status = "COMPLETE";
 
     std::string description;
     std::vector<std::string> topic;
@@ -51,7 +54,7 @@ public:
 
     [[nodiscard]] std::string to_string() const;
     [[nodiscard]] static Ptr from_string(const std::string& str);
+    [[nodiscard]] Ptr clone() const;
 };
 
 }  // namespace data
-}  // namespace valley
