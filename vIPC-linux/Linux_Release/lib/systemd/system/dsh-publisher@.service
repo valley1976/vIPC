@@ -1,0 +1,17 @@
+[Unit]
+Description=DSH Channel Publisher (%i)
+After=supervisor@%i.service
+Requires=supervisor@%i.service
+PartOf=supervisor@%i.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/dsh-publisher --channel=%i
+Restart=always
+RestartSec=200ms
+User=dsh-channel
+Group=dsh-channel
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
