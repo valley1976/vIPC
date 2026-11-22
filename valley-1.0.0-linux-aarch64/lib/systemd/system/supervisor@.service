@@ -1,0 +1,31 @@
+[Unit]
+Description=Valley Supervisor (%i)
+Documentation=file:///usr/share/doc/dsh-channel/supervisor_design.md
+After=local-fs.target
+Before=dsh-publisher@%i.service dsh-subscriber@%i.service
+Wants=dsh-publisher@%i.service dsh-subscriber@%i.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=notify
+ExecStart=/usr/local/bin/supervisor --name=%i --socket=/run/dsh-channel/%i.sock
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=500ms
+WatchdogSec=5s
+TimeoutStopSec=10s
+RuntimeDirectory=dsh-channel
+RuntimeDirectoryMode=0750
+StateDirectory=dsh-channel
+StateDirectoryMode=0750
+User=dsh-channel
+Group=dsh-channel
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+RestrictAddressFamilies=AF_UNIX
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
