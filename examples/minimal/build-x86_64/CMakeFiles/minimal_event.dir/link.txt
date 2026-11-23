@@ -1,0 +1,1 @@
+/usr/bin/c++ -O3 -DNDEBUG CMakeFiles/minimal_event.dir/minimal_event.cpp.o -o minimal_event  -Wl,-rpath,/mnt/d/projects/DSH_valley/out/Linux_x86_64_Release/lib /mnt/d/projects/DSH_valley/out/Linux_x86_64_Release/lib/libipc.so -lpthread -lrt
