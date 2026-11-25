@@ -18,8 +18,14 @@
 //   "shared": [{"name": "param", "size": "512B",
 //               "synchronized": [{"name": "state", "size": 256, "align": 64}]}],
 //   "notification": [{"name": "FAULT",
-//                     "event": ["安全带未系", "相机被遮挡"]}]
+//                     "event": ["安全带未系", "相机被遮挡"]}],
+//   "recorder": [{"name": "R0",
+//                 "bundle": [{"name": "B0",
+//                             "topic": ["/camera/front", "/imu"]}]}]
 // }
+//
+// recorder 段会为每个 bundle 自动生成 notification：
+//   <recorder>-<bundle> -> topics + "$local_wake"
 //
 // 一个 supervisor 对应一个控制端点（UDS / named pipe），group 只是配置分组；每个 topic 对应一个 Channel。
 
@@ -30,6 +36,7 @@
 namespace exec::supervisor {
 
 constexpr std::size_t MAX_NOTIFICATION_EVENTS = 256;
+constexpr std::size_t MAX_NOTIFICATION_EVENT_LENGTH = 64;
 
 struct Topic_config
 {
@@ -38,7 +45,7 @@ struct Topic_config
     std::string description;
     std::size_t ring_size = 1024;       // topic 级 ring 大小
     // 由 group/subscriber + topic/subscriber 的去重数量计算；
-    // legacy 单 Channel 模式可直接填写。
+    // 显式配置 subscriber 容量；默认由订阅者列表推导。
     std::size_t subscriber_size = 0;
     std::size_t payload_size = 0;       // 0 = 继承 group
 };
@@ -74,6 +81,18 @@ struct Notification_config
     std::vector<std::string> events;
 };
 
+struct Recorder_bundle_config
+{
+    std::string name;
+    std::vector<std::string> topics;
+};
+
+struct Recorder_config
+{
+    std::string name;
+    std::vector<Recorder_bundle_config> bundles;
+};
+
 struct Channel_config
 {
     // 全局应用名，用于共享内存全局命名。
@@ -82,6 +101,8 @@ struct Channel_config
     // 预分配的通用共享区域，供 ipc::Synchronized<T> 使用。
     std::vector<Shared_config> shared;
     std::vector<Notification_config> notifications;
+    // 可选：supervisor 为每个 bundle 生成 wakeup notification。
+    std::vector<Recorder_config> recorders;
 };
 
 // 解析 JSON 文件并做结构校验；失败时 error 带字节位置。

@@ -6,9 +6,10 @@
 // Workset：放在一块调用方提供的内存里的任务集 + 2-bit 状态机。
 //   - 调用方负责内存（mmap / 共享内存 / 静态缓冲），本类不持有、不释放；
 //   - 同一块内存可以被 create() 初始化一次，之后用 open() 重新附着；
+//   - 任务通过 register_task() 按事件下标或事件名注册；
 //   - schedule() 只做状态迁移，真正的执行由 poll()/poll_wait() 驱动。
 //
-// 公开头只依赖标准库 + Aligned_allocator；Signals 等实现细节在 exec/src/ 下。
+// 公开头只依赖标准库；Signals 等实现细节在 exec/src/ 下。
 
 #include <chrono>
 #include <cstddef>
@@ -19,9 +20,6 @@
 #include <string>
 #include <system_error>
 #include <utility>
-#include <vector>
-
-#include "base/aligned_allocator.hpp"
 
 namespace ipc {
 class Notification;
@@ -52,8 +50,14 @@ public:
         std::uint64_t skipped = 0;
     };
 
-    using Task  = std::function<void()>;
-    using Tasks = std::vector<Task, base::Aligned_allocator<Task, CACHE_LINE_SIZE>>;
+    using Task = std::function<void()>;
+
+    // 为事件/task 下标注册回调；空 Task 表示清空该槽位。
+    // 建议在 poll 前完成注册；实现内部用 mutex 保护并发注册。
+    [[nodiscard]] bool register_task(std::size_t task_index, Task task);
+
+    // 通过事件名注册；需要先 bind_notification() 且该 group 已 Event::bind()。
+    [[nodiscard]] bool register_task(const std::string& event_name, Task task);
 
     Workset();
     ~Workset();
@@ -95,15 +99,14 @@ public:
     // {是否接受, 是否已经处于待执行/执行中}；越界或未初始化返回 {false,false}
     std::pair<bool, bool> schedule(std::size_t task_index) noexcept;
 
-    // 空的 std::function 会被跳过：状态回到 IDLE，信号位已消费，计入 skipped
-    int poll(const Tasks& tasks,
-             std::size_t max_count = std::numeric_limits<std::size_t>::max());
-    int poll(const Tasks& tasks, std::size_t max_count, std::size_t& skipped);
-    // 指定 consumer 槽位（0..MAX_CONSUMERS-1）时会同时累计该消费者的执行/跳过数
-    int poll(const Tasks& tasks, std::size_t max_count, std::size_t consumer_id,
+    // 空的 std::function 会被跳过：状态回到 IDLE，计入 skipped。
+    int poll(std::size_t max_count = std::numeric_limits<std::size_t>::max());
+    int poll(std::size_t max_count, std::size_t& skipped);
+    // 指定 consumer 槽位（0..MAX_CONSUMERS-1）时会同时累计该消费者的执行/跳过数。
+    int poll(std::size_t max_count, std::size_t consumer_id,
              std::size_t& skipped);
-    // 绑定 notification 后的等待入口：wait 消费一个事件，再 poll 执行就绪 task。
-    int poll_wait(const Tasks& tasks, std::chrono::milliseconds timeout,
+    // 绑定 notification 后的等待入口：poll，没有事件时 wait，再 poll。
+    int poll_wait(std::chrono::milliseconds timeout,
                   std::size_t max_count = std::numeric_limits<std::size_t>::max());
 
     // 公平性统计：每个 consumer 槽位的累计执行/跳过数，以及每个 task 的执行次数
@@ -113,8 +116,7 @@ public:
 private:
     struct Impl;
 
-    std::pair<bool, bool> schedule_internal(std::size_t task_index,
-                                            bool notify_notification) noexcept;
+    std::pair<bool, bool> schedule_internal(std::size_t task_index) noexcept;
 
     std::unique_ptr<Impl> impl_;
 };

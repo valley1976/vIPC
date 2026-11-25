@@ -50,12 +50,6 @@ struct Options
 {
     std::string config_path;
     std::string socket_dir = "/tmp";
-    std::string name = "default";
-    std::string socket_path;
-    std::size_t ring_size = 1024;
-    std::size_t subscriber_size = 63;
-    std::size_t payload_size = 0;
-    bool has_legacy = false;
     bool monitor = false;
 #if defined(_WIN32)
     bool service = false;

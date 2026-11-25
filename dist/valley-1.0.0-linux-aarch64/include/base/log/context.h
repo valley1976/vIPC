@@ -8,7 +8,7 @@
 
 namespace base {
 
-// 兼容旧调用点的静态门面；实际分发由 Log_system 完成。
+// 静态门面；实际分发由 Log_system 完成。
 class Log_context
 {
 public:

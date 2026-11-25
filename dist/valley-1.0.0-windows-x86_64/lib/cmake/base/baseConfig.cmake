@@ -27,7 +27,7 @@ endmacro()
 include(CMakeFindDependencyMacro)
 find_dependency(Threads)
 
-if(OFF)
+if()
   find_dependency(ZLIB)
 endif()
 

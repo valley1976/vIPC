@@ -72,10 +72,11 @@ public:
         const std::vector<Synchronized_spec>& specs) noexcept;
 
     // supervisor 在创建 region 后调用；只初始化 header/entries。
+    // 返回值是 owner；owner 析构或 destroy() 会销毁 READY slot 内的 mutex。
     [[nodiscard]] static Synchronized_pool create(
         Region_view region, const std::vector<Synchronized_spec>& specs);
 
-    // 客户端打开已有 pool；布局由 header 自描述。
+    // 客户端打开已有 pool；布局由 header 自描述。返回值不是 owner。
     [[nodiscard]] static Synchronized_pool open(Region_view region);
 
     template<typename T, typename... Args>

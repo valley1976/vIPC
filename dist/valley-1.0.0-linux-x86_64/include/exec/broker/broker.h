@@ -59,12 +59,20 @@ public:
     [[nodiscard]] std::optional<ipc::Channel::Chunk> acquire_chunk();
     [[nodiscard]] bool publish(ipc::Channel::Chunk&& chunk) noexcept;
 
+    // 发布成功后触发；必须在开始并发 publish 前设置。
+    // wakeup 可以是 Event，也可以是任意回调；set_* 会替换现有集合。
+    using Wakeup = std::function<void()>;
+    [[nodiscard]] bool set_wakeup(std::shared_ptr<ipc::Event> event);
+    void set_wakeups(std::vector<std::shared_ptr<ipc::Event>> events);
+    void add_wakeup(Wakeup wakeup);
+
 private:
     friend class Broker;
     Publisher(Broker& owner, std::string topic);
 
     Broker* owner_ = nullptr;
     std::string topic_;
+    std::vector<Wakeup> wakeups_;
 };
 
 class Subscriber
@@ -118,11 +126,13 @@ public:
     [[nodiscard]] std::shared_ptr<ipc::Notification>
     acquire_notification(const std::string& name);
 
-    // events 必须与 supervisor 配置中的顺序一致；name 是 notification 名，
-    // event_name 必须是 events 中的一项。
+    // 通过 Broker 查询 supervisor 暴露的 notification，再按其中的事件名表绑定 Event。
     [[nodiscard]] std::shared_ptr<ipc::Event>
-    acquire_event(const std::string& name, const std::string& event_name,
-                  const std::vector<std::string>& events);
+    acquire_event(const std::string& name, const std::string& event_name);
+
+    // 查询 supervisor：topic 属于哪些 recorder/bundle Notification。
+    [[nodiscard]] std::vector<std::shared_ptr<ipc::Event>>
+    acquire_wakeups(const std::string& topic);
 
 private:
     Broker();

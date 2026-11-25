@@ -17,6 +17,10 @@
 #include "data/trigger.h"
 #include "time/time.h"
 
+namespace ipc {
+class Notification;
+}
+
 namespace data {
 
 struct Queue_metrics
@@ -51,6 +55,8 @@ struct Bundle_metrics
     std::uint64_t late_triggers = 0;
     std::uint64_t publish_failures = 0;
     std::uint64_t clock_jumps = 0;
+    // 录制线程在统计窗口内处于 poll 的时间占比，0..1。
+    double busy_ratio = 0.0;
     bool mode_switch_pending = false;
     Write_mode pending_mode = Write_mode::SYNC;
 };
@@ -83,6 +89,12 @@ struct Subscriber_topic
 
 struct Recorder_options
 {
+    // Bundle 启动前调用；返回 supervisor 创建的 notification。
+    // 为 nullptr 时退回进程内条件变量唤醒。
+    using Notification_factory =
+        std::function<std::shared_ptr<ipc::Notification>(const std::string&)>;
+    Notification_factory notification_factory;
+
     std::string storage_directory = ".";
     std::size_t max_file_size = 100 * 1024 * 1024;
     // 按文件打开后的 steady 时长切分；0 表示不按时长切分。
@@ -90,7 +102,14 @@ struct Recorder_options
     std::string compression = "none";
     Write_mode write_mode = Write_mode::SYNC;
     std::size_t max_queue_bytes = 64 * 1024 * 1024;
+    // 空闲时的最长等待；Trigger 边界和 notify() 可以提前唤醒。
     std::chrono::milliseconds poll_interval{100};
+    // 每个 topic 每次 poll 最多读取的消息数；防止高频 topic 饿死其它 topic。
+    std::size_t max_reads_per_poll = 10;
+    // 低延迟部署可开启；失败时静默降级为普通线程。
+    bool realtime_thread = false;
+    // 0 表示平台默认值；Linux 为 SCHED_FIFO 优先级，Windows 映射为高优先级。
+    int realtime_priority = 0;
 
     // 测试/嵌入时钟；默认使用系统 UTC + steady。
     time_::Clock_source clock_source{};
@@ -141,12 +160,21 @@ public:
     [[nodiscard]] bool add_topic(const Topic& topic);
     [[nodiscard]] bool add_topic(Subscriber_topic&& topic);
 
+    // Bundle 的跨进程唤醒；local_wake_index 必须对应 $local_wake 事件。
+    // notification 由 supervisor/Broker 创建，Recorder 只附着。
+    [[nodiscard]] bool attach_wakeup(
+        const std::string& bundle_name,
+        std::shared_ptr<ipc::Notification> notification,
+        int local_wake_index);
+
     explicit operator bool() const noexcept { return impl_ != nullptr; }
 
     [[nodiscard]] bool failed() const noexcept;
     [[nodiscard]] std::string error() const;
 
     bool record(Trigger::Ptr&& trigger);
+    // 由 Broker/上层事件循环调用；唤醒录制线程立即 poll。
+    void notify() noexcept;
     void start();
     void stop();
 
