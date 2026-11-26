@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "ipc/export.h"
+
 // Channel 的高级接口：恢复流程和 subscriber 观测。
 // 普通数据面只需要 ipc/channel.h。
 

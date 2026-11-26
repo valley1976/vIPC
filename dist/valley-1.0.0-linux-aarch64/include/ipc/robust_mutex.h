@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "ipc/export.h"
+
 #include <cstddef>
 #include <string>
 
@@ -23,7 +25,7 @@ namespace ipc {
 // 跨进程 robust mutex。
 // POSIX 直接放在共享内存；Windows 只保存命名 mutex 的名字，
 // 真正的 HANDLE 由每个进程在本地打开并缓存。
-class Robust_mutex
+class LIBVALLEY_IPC_EXPORT Robust_mutex
 {
 public:
     enum class Lock_state

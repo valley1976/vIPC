@@ -6,11 +6,12 @@
 #include <memory>
 #include <vector>
 
+#include "base/export.h"
 #include "record.h"
 
 namespace base {
 
-class Sink
+class LIBVALLEY_BASE_EXPORT Sink
 {
 public:
     virtual ~Sink() = default;
@@ -23,6 +24,6 @@ public:
 using Sink_ptr = std::shared_ptr<Sink>;
 using Sink_group = std::vector<Sink_ptr>;
 
-Sink_ptr make_std_sink();
+LIBVALLEY_BASE_EXPORT Sink_ptr make_std_sink();
 
 }  // namespace base

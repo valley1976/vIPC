@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "exec/export.h"
+
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
@@ -44,7 +46,7 @@ class Broker;
 class Publisher;
 class Subscriber;
 
-class Publisher
+class LIBVALLEY_EXEC_EXPORT Publisher
 {
 public:
     ~Publisher();
@@ -75,7 +77,7 @@ private:
     std::vector<Wakeup> wakeups_;
 };
 
-class Subscriber
+class LIBVALLEY_EXEC_EXPORT Subscriber
 {
 public:
     ~Subscriber();
@@ -103,7 +105,7 @@ private:
 };
 
 // 每个客户进程一个实例；负责与 supervisor 的 attach、shm/Channel 缓存。
-class Broker
+class LIBVALLEY_EXEC_EXPORT Broker
 {
 public:
     static Broker& instance();

@@ -60,7 +60,7 @@ add_library(valley::ipc SHARED IMPORTED)
 
 set_target_properties(valley::ipc PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include;${_IMPORT_PREFIX}/include"
-  INTERFACE_LINK_LIBRARIES "Threads::Threads;rt"
+  INTERFACE_LINK_LIBRARIES "Threads::Threads"
 )
 
 # Load information for each installed configuration.

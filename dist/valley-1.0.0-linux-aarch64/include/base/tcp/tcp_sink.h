@@ -8,6 +8,7 @@
 #include <string>
 
 #include "base/log/sink.h"
+#include "base/tcp/export.h"
 
 namespace base {
 
@@ -18,7 +19,7 @@ struct Tcp_options
 };
 
 // 同步 TCP sink；调用方应使用 Async_sink 包装，避免阻塞业务线程。
-class Tcp_sink final : public Sink
+class LIBVALLEY_BASE_TCP_EXPORT Tcp_sink final : public Sink
 {
 public:
     explicit Tcp_sink(Tcp_options options);

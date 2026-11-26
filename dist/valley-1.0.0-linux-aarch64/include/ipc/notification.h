@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "ipc/export.h"
+
 // 命名通知对象：内部共享内存状态由 Notification_state 实现。
 // 每个 notification 绑定一个进程间 auto-reset event；create 必须提供 notification 名。
 // 外部只使用本句柄的 poll/wait/set 接口，不依赖 Signals/Signals64。
@@ -16,7 +18,7 @@
 
 namespace ipc {
 
-class Notification
+class LIBVALLEY_IPC_EXPORT Notification
 {
 public:
     static constexpr std::size_t MAX_EVENTS = 256;

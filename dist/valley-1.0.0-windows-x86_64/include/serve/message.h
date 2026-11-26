@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "serve/export.h"
+
 // 通用消息帧：16 字节头 + 变长 payload，IPC 与 TCP 共用。
 // 只在同机同架构上传输，字节序按本机，不做转换。
 //   off 0  kind     request / response / notification / hello / ping / pong
@@ -29,7 +31,7 @@ enum class Kind : std::uint16_t
     PONG         = 6
 };
 
-class Message
+class LIBVALLEY_SERVE_EXPORT Message
 {
 public:
     static constexpr std::size_t HEADER_SIZE = 16;

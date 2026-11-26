@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "serve/export.h"
+
 // 分帧会话的传输无关接口：rpc 层只依赖这个基类，不关心底层是命名管道、本机套接字
 // 还是 TCP。具体实现是 ipc::Basic_session<Stream>。
 // 线程约定与 Buffered_stream 一致：send()/close() 在 loop 线程调用。
@@ -16,7 +18,7 @@
 
 namespace serve {
 
-class Session_base
+class LIBVALLEY_SERVE_EXPORT Session_base
 {
 public:
     using Ptr = std::shared_ptr<Session_base>;

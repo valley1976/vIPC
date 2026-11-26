@@ -72,7 +72,7 @@ private:
     std::ostringstream stream_;
 };
 
-class LIBVALLEY_BASE_EXPORT Null_logger
+class Null_logger
 {
 public:
     Null_logger(Log_severity level, int line, const char* file,

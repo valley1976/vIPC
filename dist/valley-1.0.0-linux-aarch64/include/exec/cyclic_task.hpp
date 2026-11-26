@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "exec/export.h"
+
 // 周期任务循环：严格周期 + 停止 + 统计。
 //
 //   exec::Cyclic_task task(cfg, task_fn);
@@ -24,7 +26,7 @@
 
 namespace exec {
 
-class Cyclic_task
+class LIBVALLEY_EXEC_EXPORT Cyclic_task
 {
 public:
     struct Config

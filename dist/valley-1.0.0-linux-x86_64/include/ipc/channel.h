@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "ipc/export.h"
+
 // 运行时容量版单生产者/多订阅者通道：公开 API。
 // 实现与 References 布局在 ipc/src/ 下，不对外暴露。
 
@@ -17,7 +19,7 @@
 
 namespace ipc {
 
-class Channel {
+class LIBVALLEY_IPC_EXPORT Channel {
 public:
     using Value = std::uint64_t;
 
@@ -190,7 +192,7 @@ private:
     bool chunk_outstanding_ = false;
 };
 
-class Channel::Chunk
+class LIBVALLEY_IPC_EXPORT Channel::Chunk
 {
 public:
     ~Chunk();
@@ -223,7 +225,7 @@ private:
     bool valid_ = false;
 };
 
-class Channel::Subscriber {
+class LIBVALLEY_IPC_EXPORT Channel::Subscriber {
 public:
     ~Subscriber();
 
@@ -259,7 +261,7 @@ private:
     bool chunk_outstanding_ = false;
 };
 
-class Channel::Reader {
+class LIBVALLEY_IPC_EXPORT Channel::Reader {
 public:
     ~Reader();
 

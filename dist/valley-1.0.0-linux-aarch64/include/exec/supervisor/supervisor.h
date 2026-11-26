@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "exec/export.h"
+
 #include <atomic>
 #include <cstddef>
 #include <memory>
@@ -59,7 +61,7 @@ struct Options
 };
 
 // 数据面控制面：按配置创建 shm + Channel，处理 serve attach。
-class Supervisor
+class LIBVALLEY_EXEC_EXPORT Supervisor
 {
 public:
     Supervisor(Channel_config config, Options options);

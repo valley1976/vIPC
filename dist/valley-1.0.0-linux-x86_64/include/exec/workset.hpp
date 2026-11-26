@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "exec/export.h"
+
 // Workset：放在一块调用方提供的内存里的任务集 + 2-bit 状态机。
 //   - 调用方负责内存（mmap / 共享内存 / 静态缓冲），本类不持有、不释放；
 //   - 同一块内存可以被 create() 初始化一次，之后用 open() 重新附着；
@@ -38,7 +40,7 @@ struct Error_info
 // 在 poll() 内同步调用；为空表示不上报
 using Error_reporter = std::function<void(const Error_info&)>;
 
-class Workset
+class LIBVALLEY_EXEC_EXPORT Workset
 {
 public:
     static constexpr std::size_t CACHE_LINE_SIZE = 64;

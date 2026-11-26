@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "serve/export.h"
+
 // 统一入口的客户端：构造时传地址（`ipc://name` 或 `tcp://host:port`），
 // 内部自动选择 IPC / TCP 实现；接口与 rpc::Ipc_client / rpc::Tcp_client 一致。
 // 线程约定：connect_async/disconnect/register_* 任意线程；request/notify 任意线程（内部投递）；
@@ -24,7 +26,7 @@
 
 namespace serve {
 
-class Client : public std::enable_shared_from_this<Client>
+class LIBVALLEY_SERVE_EXPORT Client : public std::enable_shared_from_this<Client>
 {
 public:
     using Session_ptr      = Session_base::Ptr;

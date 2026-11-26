@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "serve/export.h"
+
 // 事件循环：asio::io_context 的薄封装。
 //   background 模式：start() 起线程后立刻返回，stop() 停线程；
 //   foreground 模式：start() 在当前线程阻塞运行，等价 run()。
@@ -24,7 +26,7 @@ namespace detail {
 struct Event_loop_internal;
 }
 
-class Event_loop
+class LIBVALLEY_SERVE_EXPORT Event_loop
 {
 public:
     enum class Mode

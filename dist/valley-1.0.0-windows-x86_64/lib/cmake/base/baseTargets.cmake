@@ -69,7 +69,7 @@ set_target_properties(valley::base PROPERTIES
 add_library(valley::base_tcp SHARED IMPORTED)
 
 set_target_properties(valley::base_tcp PROPERTIES
-  INTERFACE_LINK_LIBRARIES "valley::base;ws2_32"
+  INTERFACE_LINK_LIBRARIES "valley::base"
 )
 
 # Load information for each installed configuration.

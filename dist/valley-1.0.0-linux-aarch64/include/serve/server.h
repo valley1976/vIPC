@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "serve/export.h"
+
 // 统一入口的服务端：构造时传地址（`ipc://name` 或 `tcp://host:port`），
 // 内部自动选择 IPC / TCP 实现；对外只暴露 RPC 语义。
 // 生命周期：必须由 std::shared_ptr 托管；start()/stop() 在 loop 线程或 loop 启动前调用。
@@ -23,7 +25,7 @@
 
 namespace serve {
 
-class Server : public std::enable_shared_from_this<Server>
+class LIBVALLEY_SERVE_EXPORT Server : public std::enable_shared_from_this<Server>
 {
 public:
     using Session_ptr      = Session_base::Ptr;

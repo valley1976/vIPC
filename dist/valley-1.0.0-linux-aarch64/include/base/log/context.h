@@ -9,7 +9,7 @@
 namespace base {
 
 // 静态门面；实际分发由 Log_system 完成。
-class Log_context
+class LIBVALLEY_BASE_EXPORT Log_context
 {
 public:
     static void init(Log_severity severity, Sink_ptr sink = nullptr);

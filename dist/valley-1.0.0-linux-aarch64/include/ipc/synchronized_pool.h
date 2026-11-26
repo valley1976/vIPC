@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "ipc/export.h"
+
 #include "ipc/synchronized.h"
 
 #include <cstddef>
@@ -50,7 +52,7 @@ template<typename T>
 
 // 配置驱动的 Synchronized pool。
 // 数量、slot 大小和对齐由配置在创建时确定，运行期不增删。
-class Synchronized_pool
+class LIBVALLEY_IPC_EXPORT Synchronized_pool
 {
 public:
     static constexpr std::size_t NAME_CAPACITY = 32;

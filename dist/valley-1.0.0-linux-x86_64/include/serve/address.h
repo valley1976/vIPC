@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "serve/export.h"
+
 // 传输地址：`ipc://name` 或 `tcp://host:port`。
 // 解析是纯函数，不依赖 asio 之外的任何东西；解析结果规范化后再交给传输层。
 
@@ -19,7 +21,7 @@ enum class Transport
     TCP
 };
 
-class Address
+class LIBVALLEY_SERVE_EXPORT Address
 {
 public:
     Address() = default;

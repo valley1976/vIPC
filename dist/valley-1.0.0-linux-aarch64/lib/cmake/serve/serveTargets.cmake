@@ -59,9 +59,8 @@ endif()
 add_library(valley::serve SHARED IMPORTED)
 
 set_target_properties(valley::serve PROPERTIES
-  INTERFACE_COMPILE_DEFINITIONS "ASIO_STANDALONE;ASIO_STANDALONE"
   INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include;${_IMPORT_PREFIX}/include"
-  INTERFACE_LINK_LIBRARIES "asio::asio;Threads::Threads"
+  INTERFACE_LINK_LIBRARIES "Threads::Threads"
 )
 
 # Load information for each installed configuration.

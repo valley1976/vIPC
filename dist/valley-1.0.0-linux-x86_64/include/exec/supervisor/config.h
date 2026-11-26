@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "exec/export.h"
+
 // supervisor 的 JSONC 拓扑配置（支持 // 与 /* ... */ 注释）：
 //
 // {
@@ -106,11 +108,11 @@ struct Channel_config
 };
 
 // 解析 JSON 文件并做结构校验；失败时 error 带字节位置。
-bool load_channel_config(const std::string& path, Channel_config& config,
+LIBVALLEY_EXEC_EXPORT bool load_channel_config(const std::string& path, Channel_config& config,
                          std::string& error);
 
 // group 默认订阅者 + topic 订阅者（去重）
-std::vector<std::string> effective_subscribers(const Group_config& group,
+LIBVALLEY_EXEC_EXPORT std::vector<std::string> effective_subscribers(const Group_config& group,
                                                const Topic_config& topic);
 
 }  // namespace exec::supervisor

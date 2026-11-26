@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "serve/export.h"
+
 // 单次定时器。expire_* 可在任意线程调用（内部投递到 loop 线程），
 // 回调也在 loop 线程触发：参数 true = 到期，false = 被取消或覆盖。
 
@@ -14,7 +16,7 @@ namespace serve {
 
 class Event_loop;
 
-class Steady_timer
+class LIBVALLEY_SERVE_EXPORT Steady_timer
 {
 public:
     explicit Steady_timer(Event_loop& loop);

@@ -27,10 +27,6 @@ endmacro()
 include(CMakeFindDependencyMacro)
 find_dependency(Threads)
 
-if(1)
-  find_dependency(asio)
-endif()
-
 include("${CMAKE_CURRENT_LIST_DIR}/serveTargets.cmake")
 
 if(NOT TARGET valley::serve)

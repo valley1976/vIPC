@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "ipc/export.h"
+
 // 对外事件句柄：隐藏 Notification 的共享内存布局和位图实现。
 //
 //   auto notification = ipc::Notification::create(region, size, "FAULT", events);
@@ -20,7 +22,7 @@ namespace ipc {
 
 class Notification;
 
-class Event
+class LIBVALLEY_IPC_EXPORT Event
 {
 public:
     Event(std::string group, std::string event_name);

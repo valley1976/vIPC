@@ -3,6 +3,17 @@
 
 #pragma once
 
-// base 静态库当前不导出 DLL 符号；保留统一导出宏以兼容后续动态库构建。
-#define LIBVALLEY_BASE_EXPORT
+// base 共享库导出宏。
+#if defined(_WIN32)
+#  if defined(VALLEY_BASE_BUILD)
+#    define LIBVALLEY_BASE_EXPORT __declspec(dllexport)
+#  else
+#    define LIBVALLEY_BASE_EXPORT __declspec(dllimport)
+#  endif
+#elif defined(__GNUC__)
+#  define LIBVALLEY_BASE_EXPORT __attribute__((visibility("default")))
+#else
+#  define LIBVALLEY_BASE_EXPORT
+#endif
+
 #define VALLEY_BASE_EXPORT LIBVALLEY_BASE_EXPORT

@@ -9,6 +9,8 @@
 #include <mutex>
 #include <string>
 
+#include "time/export.h"
+
 namespace time_ {
 
 using Utc_clock = std::chrono::system_clock;
@@ -43,7 +45,7 @@ struct Clock_source
 
 // 一个 session 内 UTC 与 monotonic 时间的映射器。
 // UTC 可能跳变；steady 只用于本进程时长。
-class Session_clock
+class LIBVALLEY_TIME_EXPORT Session_clock
 {
 public:
     explicit Session_clock(
@@ -96,7 +98,7 @@ private:
 };
 
 // 固定 UTC 格式，默认 YYYYMMDDTHHMMSSZ。
-[[nodiscard]] std::string
+[[nodiscard]] LIBVALLEY_TIME_EXPORT std::string
 format_utc(Utc_time time, const char* format = "%Y%m%dT%H%M%SZ");
 
 }  // namespace time_
