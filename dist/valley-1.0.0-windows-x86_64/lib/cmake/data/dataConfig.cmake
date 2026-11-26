@@ -27,9 +27,7 @@ endmacro()
 include(CMakeFindDependencyMacro)
 find_dependency(Threads)
 find_dependency(time)
-find_dependency(nlohmann_json)
 find_dependency(ipc)
-find_dependency(storage_mcap)
 
 include("${CMAKE_CURRENT_LIST_DIR}/dataTargets.cmake")
 

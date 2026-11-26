@@ -8,7 +8,7 @@ set(CMAKE_IMPORT_FILE_VERSION 1)
 # Import target "valley::data" for configuration "Release"
 set_property(TARGET valley::data APPEND PROPERTY IMPORTED_CONFIGURATIONS RELEASE)
 set_target_properties(valley::data PROPERTIES
-  IMPORTED_LINK_DEPENDENT_LIBRARIES_RELEASE "valley::shm"
+  IMPORTED_LINK_DEPENDENT_LIBRARIES_RELEASE "valley::storage_mcap;valley::shm"
   IMPORTED_LOCATION_RELEASE "${_IMPORT_PREFIX}/lib/libdata.so"
   IMPORTED_SONAME_RELEASE "libdata.so"
   )

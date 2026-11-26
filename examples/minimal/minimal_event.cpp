@@ -12,19 +12,24 @@ int main()
 {
     alignas(64) std::byte storage[256]{};
 
-    auto notification =
-        ipc::Notification::create(storage, sizeof storage, "FAULT");
+    auto notification = ipc::Notification::create(
+        storage, sizeof storage, "FAULT", {"camera"});
     if (!notification.valid())
         return 1;
-    if (!ipc::Event::bind("FAULT", storage, sizeof storage, {"camera"}))
+    if (!ipc::Event::bind("FAULT", notification))
         return 2;
 
     ipc::Event event{"FAULT", "camera"};
+    if (!event.valid())
+        return 3;
+
     event.emit();
 
-    if (notification.wait(0, std::chrono::milliseconds{100}))
+    const bool received =
+        notification.wait(std::chrono::milliseconds{100});
+    if (received && notification.poll() == 0)
         std::puts("received camera event");
 
     ipc::Event::unbind("FAULT");
-    return 0;
+    return received ? 0 : 4;
 }

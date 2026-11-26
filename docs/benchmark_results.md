@@ -64,7 +64,7 @@ cmake --build build
 | event/cross mean | 5.42 us | 5.35–5.64 |
 | event/cross p99 | 18.80 us | 18.00–20.80 |
 
-`event/self` 是同线程 `emit()` 后立即 `wait(0)`；`event/cross` 是一个线程
+`event/self` 是同线程 `emit()` 后立即 `wait()` + `poll()`；`event/cross` 是一个线程
 emit、另一个线程 wait。跨线程的 p50 受调度影响明显（3 次运行在 2.6–6.5 us
 之间波动），因此这里主要看 mean 和 p99。
 

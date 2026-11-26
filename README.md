@@ -94,18 +94,18 @@ VALLEY_SDK
 `valley_drive` 依赖 `data` / `exec` / `ipc`，先构建：
 
 ```powershell
-$env:VALLEY_CMAKE_PREFIX_PATH = 'C:\path\to\conan\generators'
 .\examples\valley_drive\build.ps1
 ```
 
 Linux：
 
 ```bash
-export VALLEY_CMAKE_PREFIX_PATH=/path/to/conan/generators
 ./examples/valley_drive/build.sh
 ```
 
-也可以设置 `VALLEY_CONAN_TOOLCHAIN` 指向 Conan toolchain；依赖细节见
+只需要系统提供 `nlohmann_json`；`mcap` / `asio` 由示例的本地 shim 处理。
+如果找不到 `nlohmann_json`，再设置 `VALLEY_CMAKE_PREFIX_PATH` 或
+`VALLEY_CONAN_TOOLCHAIN`；细节见
 [examples/valley_drive/README.md](examples/valley_drive/README.md)。
 
 然后运行：
@@ -123,8 +123,10 @@ examples/valley_drive/run_demo.sh "" 30
 
 运行脚本会自动从 `dist/` 查找 SDK 的 `supervisor` / `monitor`，从
 `build/valley_drive*` 查找示例可执行文件；topology 和录制产物都写到本次运行
-目录，不会修改 SDK 目录。endpoint 由 `topology.json` 的 `application` 决定，
-`valley_drive` 与 supervisor 使用同一规则，不再手写 `--address`。
+目录，不会修改 SDK 目录。recorder 使用 camera / sensor 两个 bundle，并创建
+多个随机 trigger，覆盖相互重叠的 topic 和时间窗口。endpoint 由
+`topology.json` 的 `application` 决定，`valley_drive` 与 supervisor 使用同一
+规则，不再手写 `--address`。
 
 ## Benchmark
 

@@ -1,4 +1,0 @@
-/mnt/d/projects/valley-sdk/examples/minimal/build-x86_64/CMakeFiles/minimal_channel.dir
-/mnt/d/projects/valley-sdk/examples/minimal/build-x86_64/CMakeFiles/minimal_event.dir
-/mnt/d/projects/valley-sdk/examples/minimal/build-x86_64/CMakeFiles/edit_cache.dir
-/mnt/d/projects/valley-sdk/examples/minimal/build-x86_64/CMakeFiles/rebuild_cache.dir

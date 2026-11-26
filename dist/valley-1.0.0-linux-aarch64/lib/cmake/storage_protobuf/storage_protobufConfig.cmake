@@ -25,8 +25,6 @@ endmacro()
 ####################################################################################
 
 include(CMakeFindDependencyMacro)
-find_dependency(Threads)
-find_dependency(mcap)
 find_dependency(storage_mcap)
 find_dependency(protobuf)
 

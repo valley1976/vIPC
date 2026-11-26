@@ -11,8 +11,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(Threads REQUIRED)
 
 # serveConfig.cmake 会 find_dependency(asio)；公开头不需要 asio，
-# 因此 SDK 未附带 asio package 时用本地 shim 满足依赖。
-list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+# 因此优先使用本地 shim，避免 SDK 使用方额外安装 asio / mcap。
+list(PREPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 find_package(data REQUIRED)
 
@@ -30,6 +30,7 @@ if (NOT TARGET asio::asio)
 endif()
 
 find_package(exec REQUIRED)
+find_package(serve CONFIG REQUIRED)
 find_package(ipc REQUIRED)
 
 add_executable(valley_drive

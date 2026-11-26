@@ -183,8 +183,9 @@ auto event = broker.acquire_event("FAULT", "相机故障",
                                   {"安全带未系", "相机被遮挡"});
 ```
 
-`Event::bind` 新增接收已有 `Notification&` 的重载，因此不再要求调用方持有
-notification region。事件名列表仍需与 supervisor 配置顺序一致。
+`Event::bind` 只接收已有的 `Notification&`，事件名列表由
+`Notification::create(..., event_names)` 提供，不再要求调用方持有 notification
+region。事件名列表仍需与 supervisor 配置顺序一致。
 
 ### 4.5 storage id
 
@@ -205,7 +206,8 @@ subscriber.set_handler(...);
 
 // 事件
 event.emit();
-notification.wait_any_event();
+notification.wait();
+notification.poll();
 
 // 任务
 workset.bind_notification(&notification);

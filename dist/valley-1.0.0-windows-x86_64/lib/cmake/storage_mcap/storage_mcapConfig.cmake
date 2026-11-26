@@ -25,8 +25,6 @@ endmacro()
 ####################################################################################
 
 include(CMakeFindDependencyMacro)
-find_dependency(Threads)
-find_dependency(mcap)
 
 include("${CMAKE_CURRENT_LIST_DIR}/storage_mcapTargets.cmake")
 

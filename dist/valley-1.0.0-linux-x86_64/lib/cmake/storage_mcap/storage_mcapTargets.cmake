@@ -3,11 +3,11 @@
 if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}" LESS 2.8)
    message(FATAL_ERROR "CMake >= 2.8.0 required")
 endif()
-if(CMAKE_VERSION VERSION_LESS "2.8.12")
-   message(FATAL_ERROR "CMake >= 2.8.12 required")
+if(CMAKE_VERSION VERSION_LESS "2.8.3")
+   message(FATAL_ERROR "CMake >= 2.8.3 required")
 endif()
 cmake_policy(PUSH)
-cmake_policy(VERSION 2.8.12...3.29)
+cmake_policy(VERSION 2.8.3...3.29)
 #----------------------------------------------------------------
 # Generated CMake target import file.
 #----------------------------------------------------------------
@@ -59,9 +59,7 @@ endif()
 add_library(valley::storage_mcap SHARED IMPORTED)
 
 set_target_properties(valley::storage_mcap PROPERTIES
-  INTERFACE_COMPILE_DEFINITIONS "MCAP_PUBLIC="
   INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include;${_IMPORT_PREFIX}/include"
-  INTERFACE_LINK_LIBRARIES "mcap::mcap;Threads::Threads"
 )
 
 # Load information for each installed configuration.

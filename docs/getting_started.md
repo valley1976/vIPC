@@ -107,15 +107,16 @@ int main()
 {
     alignas(64) std::byte storage[256]{};
 
-    auto notification =
-        ipc::Notification::create(storage, sizeof storage, "FAULT");
+    auto notification = ipc::Notification::create(
+        storage, sizeof storage, "FAULT", {"camera"});
 
-    ipc::Event::bind("FAULT", storage, sizeof storage, {"camera"});
+    ipc::Event::bind("FAULT", notification);
 
     ipc::Event event{"FAULT", "camera"};
     event.emit();
 
-    notification.wait(0, std::chrono::milliseconds{100});
+    if (notification.wait(std::chrono::milliseconds{100}))
+        (void)notification.poll();
 }
 ```
 

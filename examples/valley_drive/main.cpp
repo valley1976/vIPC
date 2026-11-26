@@ -12,10 +12,12 @@
 #include "sensor/imu_device.h"
 #include "sensor/lidar_device.h"
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <cstdio>
 #include <cstring>
+#include <random>
 #include <string>
 #include <thread>
 #include <utility>
@@ -65,7 +67,7 @@ void usage(const char* exe)
         "  --application NAME   supervisor application (default valley-drive)\n"
         "  --socket-dir DIR     POSIX supervisor socket directory (default /tmp)\n"
         "  --duration N         run seconds (default 30)\n"
-        "  --trigger-after N    recorder trigger delay (default 5)\n"
+        "  --trigger-after N    recorder trigger base delay (default 5)\n"
         "  --storage DIR        recorder output directory\n",
         exe);
 }
@@ -292,17 +294,39 @@ void run_recorder(exec::broker::Broker& broker, const Options& options)
     data::Recorder_config config;
     config.name = "valley-drive";
 
-    data::Bundle_config bundle;
-    bundle.name = "sensor";
-    bundle.topics = TOPICS;
-    bundle.max_file_size = 512 * 1024 * 1024;
-    bundle.write_mode = data::Write_mode::ASYNC;
-    bundle.max_queue_bytes = 256 * 1024 * 1024;
-    config.bundles = {bundle};
+    // 两个 bundle 各自独立写 MCAP；topic 在 bundle 之间不能重复。
+    // camera bundle 负责 4 路相机，sensor bundle 负责 IMU / LiDAR。
+    data::Bundle_config camera_bundle;
+    camera_bundle.name = "camera";
+    camera_bundle.topics = {
+        "/sensor/camera_front",
+        "/sensor/camera_near",
+        "/sensor/camera_left",
+        "/sensor/camera_right",
+    };
+    camera_bundle.max_file_size = 50 * 1024 * 1024;
+    camera_bundle.write_mode = data::Write_mode::ASYNC;
+    camera_bundle.max_queue_bytes = 256 * 1024 * 1024;
+
+    data::Bundle_config sensor_bundle;
+    sensor_bundle.name = "sensor";
+    sensor_bundle.topics = {"/sensor/imu", "/sensor/lidar"};
+    sensor_bundle.max_file_size = 50 * 1024 * 1024;
+    sensor_bundle.write_mode = data::Write_mode::ASYNC;
+    sensor_bundle.max_queue_bytes = 256 * 1024 * 1024;
+
+    config.bundles = {camera_bundle, sensor_bundle};
 
     data::Recorder_options recorder_options;
     recorder_options.storage_directory = options.storage;
     recorder_options.poll_interval = std::chrono::milliseconds{20};
+    recorder_options.on_trigger_done = [](const data::Trigger& trigger) {
+        std::printf(
+            "trigger done: %s status=%s topics=%zu manifest=%s files=%zu\n",
+            trigger.name.c_str(), trigger.status.c_str(),
+            trigger.topic.size(), trigger.manifest_file.c_str(),
+            trigger.files.size());
+    };
 
     auto recorder = data::Recorder::create(config, recorder_options);
     if (!recorder) {
@@ -328,32 +352,85 @@ void run_recorder(exec::broker::Broker& broker, const Options& options)
     }
 
     recorder.start();
-    std::this_thread::sleep_for(
-        std::chrono::seconds(options.trigger_after_sec));
 
-    auto trigger = data::Trigger::make_unique(
-        "drive-event", "valley-drive",
-        std::chrono::milliseconds(now_ms()), 3, 5);
-    trigger->topic = TOPICS;
-    if (!recorder.record(std::move(trigger)))
-        std::fprintf(stderr, "trigger rejected\n");
+    // 演示多个随机 trigger：
+    //   - trigger 时间落在一个 1s 的窗口内，前后窗口互相重叠；
+    //   - 每个 trigger 都包含 imu / camera_front，再随机附带其它 topic。
+    constexpr int TRIGGER_COUNT = 4;
+    std::random_device device;
+    const auto seed = static_cast<std::uint32_t>(
+        device() ^ static_cast<std::uint32_t>(now_ms()));
+    std::mt19937 generator{seed};
+    std::printf("recorder trigger seed=%u count=%d\n", seed, TRIGGER_COUNT);
 
-    std::this_thread::sleep_for(std::chrono::seconds(
-        options.duration_sec > options.trigger_after_sec
-            ? options.duration_sec - options.trigger_after_sec
-            : 0));
+    const int base_sec =
+        std::max(1, std::min(options.trigger_after_sec,
+                             options.duration_sec - 5));
+    const std::int64_t base_ms =
+        now_ms() + static_cast<std::int64_t>(base_sec) * 1000;
+
+    std::uniform_int_distribution<int> offset_dist{0, 1000};
+    std::vector<int> offsets;
+    offsets.reserve(TRIGGER_COUNT);
+    for (int i = 0; i < TRIGGER_COUNT; ++i)
+        offsets.push_back(offset_dist(generator));
+    std::sort(offsets.begin(), offsets.end());
+
+    std::uniform_int_distribution<int> window_dist{2, 3};
+    std::vector<std::string> topics{"/sensor/imu", "/sensor/camera_front"};
+    std::vector<std::string> extras;
+    for (const auto& topic : TOPICS) {
+        if (topic != "/sensor/imu" && topic != "/sensor/camera_front")
+            extras.push_back(topic);
+    }
+
+    for (int i = 0; i < TRIGGER_COUNT; ++i) {
+        std::shuffle(extras.begin(), extras.end(), generator);
+        const std::size_t extra_count =
+            std::uniform_int_distribution<std::size_t>{0, extras.size()}(
+                generator);
+
+        topics = {"/sensor/imu", "/sensor/camera_front"};
+        for (std::size_t n = 0; n < extra_count; ++n)
+            topics.push_back(extras[n]);
+        std::sort(topics.begin(), topics.end());
+
+        const int before = window_dist(generator);
+        const int after = window_dist(generator);
+        const std::int64_t trigger_ms = base_ms + offsets[i];
+        const auto relative_ms =
+            static_cast<long long>(base_sec) * 1000 + offsets[i];
+
+        auto trigger = data::Trigger::make_unique(
+            "drive-trigger-" + std::to_string(i + 1), "valley-drive",
+            std::chrono::milliseconds{trigger_ms},
+            static_cast<std::size_t>(before),
+            static_cast<std::size_t>(after));
+        trigger->description = "random overlapping trigger";
+        trigger->topic = topics;
+
+        std::printf(
+            "trigger %d/%d at +%lldms before=%ds after=%ds topics=%zu\n",
+            i + 1, TRIGGER_COUNT, relative_ms, before, after,
+            trigger->topic.size());
+        if (!recorder.record(std::move(trigger)))
+            std::fprintf(stderr, "trigger %d rejected\n", i + 1);
+    }
+
+    std::this_thread::sleep_for(std::chrono::seconds(options.duration_sec));
     recorder.stop();
 
     for (const auto& metrics : recorder.metrics()) {
         std::printf(
             "recorder %s/%s mode=%s written=%llu dropped=%llu "
-            "segments=%llu pre_roll_truncated=%llu\n",
+            "segments=%llu pre_roll_truncated=%llu late=%llu\n",
             config.name.c_str(), metrics.name.c_str(),
             metrics.mode == data::Write_mode::ASYNC ? "async" : "sync",
             static_cast<unsigned long long>(metrics.written),
             static_cast<unsigned long long>(metrics.dropped),
             static_cast<unsigned long long>(metrics.segment_count),
-            static_cast<unsigned long long>(metrics.pre_roll_truncated));
+            static_cast<unsigned long long>(metrics.pre_roll_truncated),
+            static_cast<unsigned long long>(metrics.late_triggers));
     }
 }
 

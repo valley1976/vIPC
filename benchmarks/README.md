@@ -56,7 +56,7 @@ payload 模式会校验每个 subscriber 读到的第一个字节。
 测 `ipc::Event` + `ipc::Notification` 的三条路径：
 
 1. `emit-only`：只 emit，不等待，看单位 emit 成本和吞吐；
-2. `event/self`：同线程 `emit()` 后立即 `wait(0)`，看 API 路径成本；
+2. `event/self`：同线程 `emit()` 后立即 `wait()` + `poll()`，看 API 路径成本；
 3. `event/cross`：一个线程 emit，另一个线程 wait，用请求/确认握手逐个测量，
    看包含线程唤醒的延迟。
 

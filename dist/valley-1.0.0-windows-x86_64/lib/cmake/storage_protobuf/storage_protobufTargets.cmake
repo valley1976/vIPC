@@ -59,9 +59,8 @@ endif()
 add_library(valley::storage_protobuf SHARED IMPORTED)
 
 set_target_properties(valley::storage_protobuf PROPERTIES
-  INTERFACE_COMPILE_DEFINITIONS "MCAP_PUBLIC="
   INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include;${_IMPORT_PREFIX}/include"
-  INTERFACE_LINK_LIBRARIES "valley::storage_mcap;protobuf::libprotobuf;Threads::Threads"
+  INTERFACE_LINK_LIBRARIES "valley::storage_mcap;protobuf::libprotobuf"
 )
 
 # Load information for each installed configuration.

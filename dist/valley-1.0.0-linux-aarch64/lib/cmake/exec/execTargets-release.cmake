@@ -8,7 +8,7 @@ set(CMAKE_IMPORT_FILE_VERSION 1)
 # Import target "valley::exec" for configuration "Release"
 set_property(TARGET valley::exec APPEND PROPERTY IMPORTED_CONFIGURATIONS RELEASE)
 set_target_properties(valley::exec PROPERTIES
-  IMPORTED_LINK_DEPENDENT_LIBRARIES_RELEASE "valley::shm;valley::serve"
+  IMPORTED_LINK_DEPENDENT_LIBRARIES_RELEASE "valley::base;valley::shm;valley::serve"
   IMPORTED_LOCATION_RELEASE "${_IMPORT_PREFIX}/lib/libexec.so"
   IMPORTED_SONAME_RELEASE "libexec.so"
   )

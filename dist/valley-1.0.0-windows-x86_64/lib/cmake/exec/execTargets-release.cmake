@@ -9,7 +9,7 @@ set(CMAKE_IMPORT_FILE_VERSION 1)
 set_property(TARGET valley::exec APPEND PROPERTY IMPORTED_CONFIGURATIONS RELEASE)
 set_target_properties(valley::exec PROPERTIES
   IMPORTED_IMPLIB_RELEASE "${_IMPORT_PREFIX}/lib/exec.lib"
-  IMPORTED_LINK_DEPENDENT_LIBRARIES_RELEASE "valley::shm;valley::serve"
+  IMPORTED_LINK_DEPENDENT_LIBRARIES_RELEASE "valley::base;valley::shm;valley::serve"
   IMPORTED_LOCATION_RELEASE "${_IMPORT_PREFIX}/bin/exec.dll"
   )
 

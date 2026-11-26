@@ -119,13 +119,13 @@ int run(const Options& options)
     alignas(64) std::byte storage[STORAGE_SIZE]{};
     const std::string group = bench::process_tag("valley_event_bench");
 
-    auto notification =
-        ipc::Notification::create(storage, sizeof storage, group);
+    auto notification = ipc::Notification::create(
+        storage, sizeof storage, group, {"tick"});
     if (!notification.valid()) {
         std::fprintf(stderr, "event_bench: notification create failed\n");
         return 1;
     }
-    if (!ipc::Event::bind(group, notification, {"tick"})) {
+    if (!ipc::Event::bind(group, notification)) {
         std::fprintf(stderr, "event_bench: event bind failed\n");
         return 1;
     }
@@ -168,7 +168,8 @@ int run(const Options& options)
         std::size_t self_failures = 0;
         for (std::size_t i = 0; i < options.warmup; ++i) {
             event.emit();
-            if (!notification.wait(0, std::chrono::milliseconds{0})) {
+            if (!notification.wait(std::chrono::milliseconds{0}) ||
+                notification.poll() != 0) {
                 ++self_failures;
                 notification.reset();
             }
@@ -180,7 +181,8 @@ int run(const Options& options)
         for (std::size_t i = 0; i < options.samples; ++i) {
             const auto begin = bench::now_ns();
             event.emit();
-            if (!notification.wait(0, std::chrono::milliseconds{0})) {
+            if (!notification.wait(std::chrono::milliseconds{0}) ||
+                notification.poll() != 0) {
                 ++self_failures;
                 notification.reset();
                 continue;
@@ -215,8 +217,8 @@ int run(const Options& options)
                     // 先把“已就绪”发布给 producer，再进入 wait；producer
                     // 看到 armed 后才 emit，尽量测到真正阻塞后的唤醒。
                     shared.armed.store(sequence, std::memory_order_release);
-                    if (!notification.wait(
-                            0, std::chrono::milliseconds{1000})) {
+                    if (!notification.wait(std::chrono::milliseconds{1000}) ||
+                        notification.poll() != 0) {
                         shared.abort.store(true, std::memory_order_release);
                         shared.done.store(sequence,
                                           std::memory_order_release);

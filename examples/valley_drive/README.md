@@ -22,22 +22,24 @@ dist/valley-1.0.0-linux-x86_64/
 Windows：
 
 ```powershell
-$env:VALLEY_CMAKE_PREFIX_PATH = 'C:\path\to\conan\generators'
 .\examples\valley_drive\build.ps1
 ```
 
 Linux：
 
 ```bash
-export VALLEY_CMAKE_PREFIX_PATH=/path/to/conan/generators
 ./examples/valley_drive/build.sh
 ```
 
-`data` / `exec` 的 CMake package 还会查找 `nlohmann_json`、`mcap`、`lz4`、
-`zstd` 等依赖，因此通常需要把 Conan 的 generators 目录通过
-`VALLEY_CMAKE_PREFIX_PATH` 传进来；也可以直接设置
-`VALLEY_CONAN_TOOLCHAIN=<.../conan_toolchain.cmake>`。asio 由仓库内的 shim
-处理，不需要额外配置。
+`data` 的 CMake package 会查找 `nlohmann_json`；系统已安装时不需要额外配置。
+`mcap` / `asio` 由示例目录下的本地 shim 满足：SDK 的 `storage_mcap` / `serve`
+是自包含动态库，公开头不暴露 mcap / asio 类型。只有找不到 `nlohmann_json` 时，
+才需要设置：
+
+```text
+VALLEY_CMAKE_PREFIX_PATH   nlohmann_json 的 CMake config 目录，或 Conan generators
+VALLEY_CONAN_TOOLCHAIN     Conan toolchain
+```
 
 默认输出：
 
@@ -203,8 +205,11 @@ POSIX 下如果需要改变默认的 `/tmp`，supervisor 和 `valley_drive` 都�
   subscriber.out/err
   recorder.out/err
   publisher.out/err
+  valley-drive_camera_*.mcap
   valley-drive_sensor_*.mcap
+  valley-drive_camera_trigger_*_manifest.json
   valley-drive_sensor_trigger_*_manifest.json
+  valley-drive_trigger_*_manifest.json
 ```
 
 ## 角色
@@ -230,23 +235,42 @@ POSIX 下如果需要改变默认的 `/tmp`，supervisor 和 `valley_drive` 都�
 
 ### recorder
 
-使用 `data::Recorder`：
+使用 `data::Recorder`，配置两个 bundle，各自独立写 MCAP：
 
 ```text
+bundle camera
+  topics = /sensor/camera_front /sensor/camera_near
+           /sensor/camera_left /sensor/camera_right
+  max_file_size = 50MB
+  write_mode = ASYNC
+
 bundle sensor
-  topics = 6 个 sensor topic
-  max_file_size = 512MB
+  topics = /sensor/imu /sensor/lidar
+  max_file_size = 50MB
   write_mode = ASYNC
 ```
 
-`--trigger-after 5` 秒后触发：
+`--trigger-after` 之后会在约 1 秒的窗口内随机创建 4 个 trigger：
+
+- 每个 trigger 都包含 `/sensor/imu` 和 `/sensor/camera_front`，再随机附带
+  0–4 个其它 topic；这样每个 trigger 会同时命中 camera 和 sensor 两个 bundle；
+- `before` / `after` 在 2–3 秒内随机，trigger 时间接近，因此录制窗口在时间上
+  互相重叠；
+- 启动时打印随机 seed 和每个 trigger 的时间、窗口、topic 数；每个 trigger
+  完成时打印聚合 manifest 和文件数。
+
+示例输出：
 
 ```text
-before = 3s
-after  = 5s
+recorder trigger seed=2649872161 count=4
+trigger 1/4 at +5116ms before=3s after=2s topics=2
+trigger 2/4 at +5596ms before=2s after=3s topics=4
+trigger 3/4 at +5633ms before=3s after=2s topics=6
+trigger 4/4 at +5691ms before=3s after=3s topics=4
+trigger done: drive-trigger-1 status=COMPLETE topics=2 manifest=... files=...
 ```
 
-写入 MCAP 和 manifest。
+每个 trigger 写入自己的 MCAP / manifest。
 
 ### monitor
 

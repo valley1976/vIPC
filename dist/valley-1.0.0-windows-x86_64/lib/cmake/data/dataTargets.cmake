@@ -60,7 +60,7 @@ add_library(valley::data SHARED IMPORTED)
 
 set_target_properties(valley::data PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include;${_IMPORT_PREFIX}/include"
-  INTERFACE_LINK_LIBRARIES "valley::time;valley::ipc;valley::storage_mcap;nlohmann_json::nlohmann_json;Threads::Threads"
+  INTERFACE_LINK_LIBRARIES "valley::time;valley::ipc;Threads::Threads"
 )
 
 # Load information for each installed configuration.
@@ -102,7 +102,7 @@ unset(_cmake_import_check_targets)
 # Make sure the targets which have been exported in some other
 # export set exist.
 unset(${CMAKE_FIND_PACKAGE_NAME}_NOT_FOUND_MESSAGE_targets)
-foreach(_target "valley::time" "valley::ipc" "valley::storage_mcap" )
+foreach(_target "valley::time" "valley::ipc" )
   if(NOT TARGET "${_target}" )
     set(${CMAKE_FIND_PACKAGE_NAME}_NOT_FOUND_MESSAGE_targets "${${CMAKE_FIND_PACKAGE_NAME}_NOT_FOUND_MESSAGE_targets} ${_target}")
   endif()
